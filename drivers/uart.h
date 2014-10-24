@@ -8,6 +8,9 @@
 #define UART_TX BIT1
 #define UART_RX BIT2
 
+// The UART buffer is 16 bytes
+#define UART_BUF_SIZE 16
+
 /**
  * Macro to initialize UART at 9600 BAUD.
  */

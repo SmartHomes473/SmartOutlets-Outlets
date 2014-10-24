@@ -18,8 +18,11 @@
 //  Built with Code Composer Studio v5
 //***************************************************************************************
 
+#include <stdint.h>
+
 #include "msp430g2553.h"
 #include "sys/init.h"
+#include "sys/interrupts.h"
 #include "drivers/uart.h"
 
 int main(void)
@@ -30,22 +33,17 @@ int main(void)
 	// Start UART
 	UART_init_9600();
 
-//	const char *str = "foo\n";
-//	UART_write_str(str);
-
-
-	UART_write_byte('a');
 	UART_write_str("hello!\n");
 
 	// Enable interrupts
-    __bis_SR_register(GIE);
+	enable_interrupts();
 
-	while(1);
+	while(1) {
+		uint8_t buff[26];
+
+		UART_read(buff, 26, '\n');
+
+		UART_write_bytes(buff, 26);
+	};
 }
 
-__attribute__((interrupt(USCIAB0RX_VECTOR)))
-void USCI0RX_ISR(void)
-{
-    while (!(IFG2&UCA0TXIFG));
-    UCA0TXBUF = UCA0RXBUF;
-}
