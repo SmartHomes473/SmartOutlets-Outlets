@@ -19,50 +19,33 @@
 //***************************************************************************************
 
 #include "msp430g2553.h"
-#include <signal.h>
-#include "uart.h"
-
-//#define TXLED BIT0
-//#define RXLED BIT6
-//#define TXD BIT2
-//#define RXD BIT1
+#include "sys/init.h"
+#include "drivers/uart.h"
 
 int main(void)
 {
-    WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
+	// Initialize MSP430
+	MSP430_init();
 
-    /* Use Calibration values for 1MHz Clock DCO*/
-    DCOCTL = 0;
-    BCSCTL1 = CALBC1_1MHZ;
-    DCOCTL = CALDCO_1MHZ;
+	// Start UART
+	UART_init_9600();
 
-    /* Configure Pin Muxing P1.1 RXD and P1.2 TXD */
-    P1SEL = BIT1 | BIT2 ;
-    P1SEL2 = BIT1 | BIT2;
+//	const char *str = "foo\n";
+//	UART_write_str(str);
 
-    /* Place UCA0 in Reset to be configured */
-    UCA0CTL1 = UCSWRST;
 
-    /* Configure */
-    UCA0CTL1 |= UCSSEL_2;                     // SMCLK
-    UCA0BR0 = 104;                            // 1MHz 9600
-    UCA0BR1 = 0;                              // 1MHz 9600
-    UCA0MCTL = UCBRS0;                        // Modulation UCBRSx = 1
+	UART_write_byte('a');
+	UART_write_str("hello!\n");
 
-    /* Take UCA0 out of reset */
-    UCA0CTL1 &= ~UCSWRST;
+	// Enable interrupts
+    __bis_SR_register(GIE);
 
-    /* Enable USCI_A0 RX interrupt */
-    IE2 |= UCA0RXIE;
-
-    __bis_SR_register(GIE);       // Enter LPM0, interrupts enabled
-
-	while(1) {}
+	while(1);
 }
 
 __attribute__((interrupt(USCIAB0RX_VECTOR)))
 void USCI0RX_ISR(void)
 {
-    while (!(IFG2&UCA0TXIFG));                // USCI_A0 TX buffer ready?
-    UCA0TXBUF = UCA0RXBUF;                    // TX -> RXed character
+    while (!(IFG2&UCA0TXIFG));
+    UCA0TXBUF = UCA0RXBUF;
 }
