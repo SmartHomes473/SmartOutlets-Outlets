@@ -15,7 +15,7 @@ BINARY = $(DEVICE).firmware
 OBJS = main.o
 
 # Hardware drivers
-DRIVERS := uart.o
+DRIVERS := uart.o spi.o
 DRIVERS := $(addprefix drivers/, $(DRIVERS))
 
 all: $(OBJS) $(DRIVERS)
