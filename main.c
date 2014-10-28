@@ -28,7 +28,7 @@ int main(void)
 	while(1) {
 		uint8_t buff[26];
 
-		UART_recv(buff, 26, '\n', UART_BLOCKING | UART_DELIM);
+		UART_recv(buff, 26, '\n', USCI_BLOCKING | USCI_DELIM);
 
 		UART_send(buff, 26);
 	};

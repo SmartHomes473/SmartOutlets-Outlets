@@ -11,5 +11,6 @@
 // Data buffer sizes (in bytes)
 #define SPI_BUF_SIZE 16
 #define UART_BUF_SIZE 16
+#define USCI_BUFFER_SIZE 16
 
 #endif

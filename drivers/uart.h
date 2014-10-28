@@ -11,17 +11,17 @@
 
 #include <unistd.h>
 #include <stdint.h>
+#include <stdbool.h>
+
+#include "drivers/usci.h"
 
 
 // The UART buffer is 16 bytes
 #define UART_BUF_SIZE 16
 
+
 // UART init options
 #define UART_9600_BAUD 0x01
-
-// UART recv options
-#define UART_BLOCKING 0x01
-#define UART_DELIM 0x02
 
 
 /**
@@ -40,7 +40,8 @@ void UART_init ( uint8_t options );
  * @param data Pointer to array of bytes to send.
  * @param len Length of data array.
  */
-void UART_send ( const uint8_t* data, size_t len );
+#define UART_send(_DATA, _LEN)\
+	send(USCI_A0, _DATA, _LEN);
 
 
 /**
@@ -57,5 +58,6 @@ void UART_send ( const uint8_t* data, size_t len );
  *
  * @returns Bytes read.
  */
-ssize_t UART_recv ( uint8_t *buffer, size_t n, uint8_t delim, uint8_t options );
+#define UART_recv(_BUFFER, _N, _DELIM, _OPTIONS)\
+	recv(USCI_A0, _BUFFER, _N, _DELIM, _OPTIONS);
 #endif

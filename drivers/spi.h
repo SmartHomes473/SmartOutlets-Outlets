@@ -12,17 +12,13 @@
 #include <unistd.h>
 #include <stdint.h>
 
-
-
-// SPI recv options
-#define SPI_BLOCKING 0x01;
-#define SPI_DELIM 0x02;
+#include "drivers/usci.h"
 
 
 /**
  * Initialize SPI on USCI_B0.
  */
-void SPI_init ( );
+void SPI_init ( uint8_t options );
 
 
 /**
@@ -31,8 +27,8 @@ void SPI_init ( );
  * @param data Pointer to array of bytes to send.
  * @param len Length of data array.
  */
-void SPI_send ( const uint8_t* data, size_t len );
-
+#define SPI_send(_DATA, _LEN)\
+	send(USCI_B0, _DATA, _LEN);
 
 /**
  * Read from SPI.
@@ -45,6 +41,7 @@ void SPI_send ( const uint8_t* data, size_t len );
  *
  * @returns Bytes read.
  */
-ssize_t SPI_recv ( uint8_t *buffer, size_t n, uint8_t delim, uint8_t options );
+#define SPI_recv(_BUFFER, _N, _DELIM, _OPTIONS)\
+	recv(USCI_B0, _BUFFER, _N, _DELIM, _OPTIONS)
 
 #endif
