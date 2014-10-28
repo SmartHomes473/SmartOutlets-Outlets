@@ -10,19 +10,42 @@
 #include <unistd.h>
 #include <stdbool.h>
 
-#include "drivers/spi.h"
 #include "msp430g2553.h"
+#include "sys/interrupts.h"
+#include "drivers/spi.h"
 
 // SPI IO pins
 #define SPI_CLK BIT5
 #define SPI_MISO BIT6
 #define SPI_MOSI BIT7
 
+
 // SPI uses a circular buffer to store incomming bytes.
 static volatile uint8_t  SPI_buffer[SPI_BUF_SIZE];
 static volatile uint8_t *SPI_buffer_head = SPI_buffer;
 static volatile uint8_t *SPI_buffer_tail = SPI_buffer;
 static volatile uint8_t  SPI_buffer_data_ready = 0;
+
+
+// Macro to write byte DATA over SPI
+#define __SPI_send_byte(DATA)\
+{\
+	while (!(IFG2&UCB0TXIFG));\
+	UCB0TXBUF = DATA;\
+}
+
+
+// Macros to increment a pointer to the SPI's circular buffer.
+#define __SPI_buffer_incr_ptr(PTR)\
+{\
+	++PTR;\
+	if (PTR == SPI_buffer + SPI_BUF_SIZE) {\
+		PTR = SPI_buffer;\
+	}\
+}
+#define SPI_buffer_incr_head() __SPI_buffer_incr_ptr(SPI_buffer_head)
+#define SPI_buffer_incr_tail() __SPI_buffer_incr_ptr(SPI_buffer_tail)
+
 
 /**
  * Initialize SPI on USCI_B0.
@@ -103,14 +126,14 @@ ssize_t SPI_recv ( uint8_t *buffer, size_t n, uint8_t delim, uint8_t options )
 		disable_interrupts();
 
 		// read the byte at the head of the buffer
-		buffer[index] = *UART_buffer_head;
+		buffer[index] = *SPI_buffer_head;
 
 		// incrememnt the head
-		UART_buffer_incr_head();
+		SPI_buffer_incr_head();
 
-		// clear UART_read_ready if there is no data in the buffer
-		if (UART_buffer_head == UART_buffer_tail) {
-			UART_buffer_data_ready = 0;
+		// clear SPI_read_ready if there is no data in the buffer
+		if (SPI_buffer_head == SPI_buffer_tail) {
+			SPI_buffer_data_ready = 0;
 		}
 
 		// re-enable interrupts
@@ -127,25 +150,3 @@ ssize_t SPI_recv ( uint8_t *buffer, size_t n, uint8_t delim, uint8_t options )
 
 	return index;
 }
-
-/**
- * Macros
- */
-
-// Macro to write byte DATA over SPI
-#define __SPI_send_byte(DATA)\
-{\
-	while (!(IFG2&UCB0TXIFG));\
-	UCB0TXBUF = DATA;\
-}
-
-// Macros to increment a pointer to the UART's circular buffer.
-#define __UART_buffer_incr_ptr(PTR)\
-{\
-	++PTR;\
-	if (PTR == UART_buffer + UART_BUF_SIZE) {\
-		PTR = UART_buffer;\
-	}\
-}
-#define UART_buffer_incr_head() __UART_buffer_incr_ptr(UART_buffer_head)
-#define UART_buffer_incr_tail() __UART_buffer_incr_ptr(UART_buffer_tail)
