@@ -8,10 +8,11 @@
 #ifndef __OUTLETS_SPI_H
 #define __OUTLETS_SPI_H
 
+
 #include <unistd.h>
 #include <stdint.h>
 
-#define SPI_BUF_SIZE 16
+
 
 // SPI recv options
 #define SPI_BLOCKING 0x01;

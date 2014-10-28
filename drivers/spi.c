@@ -11,6 +11,7 @@
 #include <stdbool.h>
 
 #include "msp430g2553.h"
+#include "config.h"
 #include "sys/interrupts.h"
 #include "drivers/spi.h"
 
@@ -67,8 +68,11 @@ void SPI_init ( )
 	UCB0BR0 |= 0x02;
 	UCB0BR1 |= 0x00;
 
-	// Enable USCI_B1;
+	// Enable USCI_B0;
 	UCB0CTL1 &= ~UCSWRST;
+
+	// Enable interrupts
+	IE2 |= UCA0RXIE;
 }
 
 
