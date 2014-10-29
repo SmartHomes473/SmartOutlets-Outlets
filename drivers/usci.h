@@ -16,6 +16,7 @@
 
 
 // USCI recv options
+#define USCI_NONE 0x00
 #define USCI_BLOCKING 0x01
 #define USCI_DELIM 0x02
 

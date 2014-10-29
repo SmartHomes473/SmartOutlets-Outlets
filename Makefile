@@ -9,10 +9,10 @@ CC			 = $(PREFIX)gcc
 CFLAGS		 = -I ./ -I $(SUPPORT_FILE_DIRECTORY) -mmcu=$(DEVICE) -O2 -g
 LDFLAGS		+= -L $(SUPPORT_FILE_DIRECTORY)
 
-BINARY = $(DEVICE).firmware
+BINARY = $(DEVICE).elf
 
 # Source files
-OBJS = main.o
+OBJS = main.o relay.o
 
 # Hardware drivers
 DRIVERS := uart.o spi.o usci.o
@@ -25,5 +25,5 @@ debug: all
 	$(GDB) $(BINARY)
 
 clean:
-	rm -vf *.o drivers/*.o
+	rm -vf *.o drivers/*.o $(BINARY)
 

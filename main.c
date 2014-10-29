@@ -17,20 +17,33 @@ int main(void)
 	// Initialize MSP430
 	MSP430_init();
 
+	// TODO: initialize all IO ports as outputs
+	RELAY_init();
+
 	// Start UART
 	UART_init(UART_9600_BAUD);
-
-	UART_send("hello!", 7);
 
 	// Enable interrupts
 	enable_interrupts();
 
 	while(1) {
-		uint8_t buff[26];
+		uint8_t buff[1];
 
-		UART_recv(buff, 26, '\n', USCI_BLOCKING | USCI_DELIM);
+		int foo = UART_recv(buff, 1, '\0', USCI_NONE);
 
-		UART_send(buff, 26);
+		if (foo > 0) {
+			switch (buff[0]) {
+				case 'i':
+					RELAY_on();
+					UART_send("ON", 2);
+					break;
+
+				case 'o':
+					RELAY_off();
+					UART_send("OFF", 3);
+					break;
+			}
+		}
 	};
 }
 
