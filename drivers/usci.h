@@ -21,14 +21,14 @@
 
 
 typedef struct {
-	uint16_t CTL0;
-	uint16_t CTL1;
-	uint16_t BR0;
-	uint16_t BR1;
-	uint16_t MCTL;
-	uint16_t STAT;
-	uint16_t RXBUF;
-	uint16_t TXBUF;
+	volatile uint8_t CTL0;
+	volatile uint8_t CTL1;
+	volatile uint8_t BR0;
+	volatile uint8_t BR1;
+	volatile uint8_t MCTL;
+	volatile uint8_t STAT;
+	volatile uint8_t RXBUF;
+	volatile uint8_t TXBUF;
 } usci_mem_t;
 
 typedef struct {
