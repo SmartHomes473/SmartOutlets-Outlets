@@ -22,6 +22,7 @@
 
 // UART init options
 #define UART_9600_BAUD 0x01
+#define UART_600_BAUD 0x02
 
 
 /**

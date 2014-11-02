@@ -22,6 +22,8 @@
  */
 void UART_init ( uint8_t options )
 {
+	uint8_t br0, br1, mctl;
+
 	// Reset USCI_A0
 	UCA0CTL1 = UCSWRST;
 
@@ -29,13 +31,26 @@ void UART_init ( uint8_t options )
 	P1SEL = BIT1 | BIT2;
 	P1SEL2 = BIT1 | BIT2;
 
-	// TODO: implement setting baud rate via options
+	// http://mspgcc.sourceforge.net/baudrate.html
+	switch (options) {
+		case UART_600_BAUD:
+			br0 = 104;
+			br1 = 0;
+			mctl = UCBRF0 | UCBRF1 | UCOS16;
+			break;
+
+		case UART_9600_BAUD:
+		default:
+			br0 = 104;
+			br1 = 0;
+			mctl = UCBRS0;
+	}
 
 	// Configure clock and UART modulation
 	UCA0CTL1 |= UCSSEL_2;
-	UCA0BR0 = 104;
-	UCA0BR1 = 0;
-	UCA0MCTL = UCBRS0;
+	UCA0BR0 = br0;
+	UCA0BR1 = br1;
+	UCA0MCTL = mctl;
 
 	// Initialize USCI_B0 buffer
 	disable_interrupts();
