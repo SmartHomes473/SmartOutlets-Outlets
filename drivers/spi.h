@@ -14,6 +14,8 @@
 
 #include "drivers/usci.h"
 
+#define SPI_NONE 0x0
+
 
 /**
  * Initialize SPI on USCI_B0.
