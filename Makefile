@@ -21,8 +21,8 @@ DRIVERS := $(addprefix drivers/, $(DRIVERS))
 all: $(OBJS) $(DRIVERS)
 	$(CC) $(CFLAGS) $(LDFLAGS) $? -o $(BINARY)
 
-debug: all
-	$(GDB) $(BINARY)
+prog: all
+	mspdebug rf2500 "prog $(BINARY)" "run"
 
 clean:
 	rm -vf *.o drivers/*.o $(BINARY)
