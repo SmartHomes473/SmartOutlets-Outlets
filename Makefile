@@ -12,7 +12,7 @@ LDFLAGS		+= -L $(SUPPORT_FILE_DIRECTORY)
 BINARY = $(DEVICE).elf
 
 # Source files
-OBJS = main.o relay.o meter.o
+OBJS = main.o relay.o meter.o rf.o
 
 # Hardware drivers
 DRIVERS := uart.o spi.o usci.o

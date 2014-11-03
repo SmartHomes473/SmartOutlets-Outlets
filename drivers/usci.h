@@ -8,8 +8,8 @@
 #ifndef __OUTLETS_USCI_H
 #define __OUTLETS_USCI_H
 
-
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "msp430g2553.h"
 #include "config.h"
