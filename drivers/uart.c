@@ -39,6 +39,11 @@ void UART_init ( uint8_t options )
 			mctl = UCBRF0 | UCBRF1 | UCOS16;
 			break;
 
+		case UART_128000_BAUD:
+			br0 = 7l;
+			br1 = 0;
+			mctl = UCBRS0 | UCBRS1 | UCBRS2;
+
 		case UART_9600_BAUD:
 		default:
 			br0 = 104;
