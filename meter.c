@@ -13,7 +13,8 @@
 static const uint8_t METER_reset[] = {0xC1};
 static const uint8_t METER_read_status[] = {0x17};
 static const uint8_t METER_write_status[] = {0x57};
-static const uint8_t METER_clear_drdy[] = {0x57, 0x00, 0x00, 0x70};
+static const uint8_t METER_clear_drdy[] = {0x57, 0x00, 0x00, 0x80};
+static const uint8_t METER_clear_drdy[] = {0x57, 0x00, 0x00, 0x40};
 static const uint8_t METER_set_baud[] = {0x47, 0x00, 0x40, 0x02};
 static const uint8_t METER_write_config0[] = {0x40, 0x00, 0x00, 0x00};
 static const uint8_t METER_write_config1[] = {0x41, 0x0F, 0x00, 0x00};
@@ -31,8 +32,19 @@ static const uint8_t METER_read_power[] = {};
 		uint8_t data[3];\
 		UART_send(METER_read_status, sizeof(METER_read_status));\
 		UART_recv(data, sizeof(data), '\0', USCI_BLOCKING);\
-		if (data[2] & 0x70) {\
+		if (data[2] & 0x80) {\
 			UART_send(METER_clear_drdy, sizeof(METER_clear_drdy));\
+			break;\
+		}\
+	}
+
+#define __METER_poll_drdy()\
+	while(1) {\
+		uint8_t data[3];\
+		UART_send(METER_read_status, sizeof(METER_read_status));\
+		UART_recv(data, sizeof(data), '\0', USCI_BLOCKING);\
+		if (data[2] & 0x40) {\
+			UART_send(METER_clear_crdy, sizeof(METER_clear_crdy));\
 			break;\
 		}\
 	}
@@ -40,15 +52,23 @@ static const uint8_t METER_read_power[] = {};
 
 void METER_init ( )
 {
-	// Initialize UART in 600 baud mode
-	UART_init(UART_600_BAUD);
-
-	// Software reset
+	uint8_t buffer[4];
+	volatile long long i;
+	// Try resetting the meter @ 128,000 baud
+	UART_init(UART_128000_BAUD);
 	UART_send(METER_reset, sizeof(METER_reset));
+	//for (i = 1000; i > 0; --i);
+	// Try resetting the meter @ 600 baud
+	UART_flush();
+	UART_init(UART_600_BAUD);
+	UART_send(METER_reset, sizeof(METER_reset));
+
+	// Wait for responses
 	__METER_poll_drdy();
 
 	// Increase the baud rate to 128000 baud
 	UART_send(METER_set_baud, sizeof(METER_set_baud));
+	UART_flush();
 	UART_init(UART_128000_BAUD);
 
 	// Write configuration
@@ -60,16 +80,16 @@ void METER_init ( )
 	// TODO: enable Integrator for Rogowski coil (config2)
 
 	// Calibrate DC offset
-	UART_send(METER_cal_DC_offset, sizeof(METER_cal_DC_offset));
-	__METER_poll_drdy();
-
-	// Calibrate AC offset
-	UART_send(METER_cal_AC_offset, sizeof(METER_cal_AC_offset));
-	__METER_poll_drdy();
-
-	// Calibrate gain
-	UART_send(METER_cal_gain, sizeof(METER_cal_gain));
-	__METER_poll_drdy();
+//	UART_send(METER_cal_DC_offset, sizeof(METER_cal_DC_offset));
+//	__METER_poll_drdy();
+//
+//	// Calibrate AC offset
+//	UART_send(METER_cal_AC_offset, sizeof(METER_cal_AC_offset));
+//	__METER_poll_drdy();
+//
+//	// Calibrate gain
+//	UART_send(METER_cal_gain, sizeof(METER_cal_gain));
+//	__METER_poll_drdy();
 }
 
 void METER_begin ( )
