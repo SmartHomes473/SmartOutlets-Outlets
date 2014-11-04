@@ -131,6 +131,15 @@ ssize_t recv ( usci_t *usci, uint8_t *buffer, size_t n, uint8_t delim, uint8_t o
 	return index;
 }
 
+/**
+ * Blocks until TX is complete.
+ */
+void flush ( usci_t *usci )
+{
+	// wait for USCI to be inactive
+	while (usci->UCxx->STAT&UCBUSY);
+}
+
 
 __attribute__((interrupt(USCIAB0RX_VECTOR)))
 void USCI0RX_ISR(void)

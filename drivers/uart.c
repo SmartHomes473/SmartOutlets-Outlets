@@ -43,6 +43,7 @@ void UART_init ( uint8_t options )
 			br0 = 7l;
 			br1 = 0;
 			mctl = UCBRS0 | UCBRS1 | UCBRS2;
+			break;
 
 		case UART_9600_BAUD:
 		default:

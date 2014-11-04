@@ -62,4 +62,8 @@ void UART_init ( uint8_t options );
  */
 #define UART_recv(_BUFFER, _N, _DELIM, _OPTIONS)\
 	recv(USCI_A0, _BUFFER, _N, _DELIM, _OPTIONS);
+
+#define UART_flush()\
+	flush(USCI_A0);
+
 #endif
