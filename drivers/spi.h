@@ -30,7 +30,12 @@ void SPI_init ( uint8_t options );
  * @param len Length of data array.
  */
 #define SPI_send(_DATA, _LEN)\
-	send(USCI_B0, _DATA, _LEN);
+{\
+	P2OUT &= ~BIT0;\
+	send(USCI_B0, _DATA, _LEN);\
+	flush(USCI_B0);\
+	P2OUT |= BIT0;\
+}
 
 /**
  * Read from SPI.

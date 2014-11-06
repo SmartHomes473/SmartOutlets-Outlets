@@ -67,6 +67,8 @@ void RF_init ( )
 	SPI_send(RF_afc, sizeof(RF_afc));
 	SPI_send(RF_tx_config, sizeof(RF_tx_config));
 	SPI_send(RF_mcu, sizeof(RF_mcu));
+
+	SPI_send(RF_status_read, sizeof(RF_status_read));
 }
 
 ssize_t RF_recv ( uint8_t *data, size_t len )
@@ -99,6 +101,7 @@ ssize_t RF_send ( uint8_t *data, size_t len )
 	// TODO: enable TX and send pramble
 	SPI_send(RF_config_tx_on, sizeof(RF_config_tx_on));
 	SPI_send(RF_power_tx_on, sizeof(RF_config_tx_on));
+	SPI_send(RF_status_read, sizeof(RF_status_read));
 
 	index = 0;
 	tx_data[0] = 0xB8;

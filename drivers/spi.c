@@ -21,6 +21,7 @@
 #define SPI_CLK BIT5
 #define SPI_MISO BIT6
 #define SPI_MOSI BIT7
+#define SPI_SEL BIT0
 
 
 /**
@@ -34,9 +35,16 @@ void SPI_init ( uint8_t options )
 	// Configure IO pins for SPI mode
 	P1SEL |= SPI_CLK | SPI_MISO | SPI_MOSI;
 	P1SEL2 |= SPI_CLK | SPI_MISO | SPI_MOSI;
+	P2SEL &= ~SPI_SEL;
+	P2SEL2 &= ~SPI_SEL;
 
-	// Configure USCI_B0 as an 8-bit 3-wire SPI master
+	// Slave select high
+	P2OUT |= SPI_SEL;
+	P2DIR |= SPI_SEL;
+
+	// Configure USCI_B0 as an 8-bit 4-wire SPI master
 	UCB0CTL0 |= UCCKPH | UCMSB | UCMST | UCSYNC;
+	//UCB0CTL0 |= UCMSB | UCMST | UCSYNC;
 
 	// Configure clock
 	UCB0CTL1 |= UCSSEL_2;

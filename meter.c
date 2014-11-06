@@ -14,7 +14,7 @@ static const uint8_t METER_reset[] = {0xC1};
 static const uint8_t METER_read_status[] = {0x17};
 static const uint8_t METER_write_status[] = {0x57};
 static const uint8_t METER_clear_drdy[] = {0x57, 0x00, 0x00, 0x80};
-static const uint8_t METER_clear_drdy[] = {0x57, 0x00, 0x00, 0x40};
+static const uint8_t METER_clear_crdy[] = {0x57, 0x00, 0x00, 0x40};
 static const uint8_t METER_set_baud[] = {0x47, 0x00, 0x40, 0x02};
 static const uint8_t METER_write_config0[] = {0x40, 0x00, 0x00, 0x00};
 static const uint8_t METER_write_config1[] = {0x41, 0x0F, 0x00, 0x00};
@@ -38,7 +38,7 @@ static const uint8_t METER_read_power[] = {};
 		}\
 	}
 
-#define __METER_poll_drdy()\
+#define __METER_poll_crdy()\
 	while(1) {\
 		uint8_t data[3];\
 		UART_send(METER_read_status, sizeof(METER_read_status));\
