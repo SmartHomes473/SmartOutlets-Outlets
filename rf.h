@@ -8,24 +8,19 @@
 #ifndef RF_H_
 #define RF_H_
 
-extern const uint8_t RF_config_tx[2];
-extern const uint8_t RF_config_rx[2];
-extern const uint8_t RF_power_tx[2];
-extern const uint8_t RF_power_rx[2];
-extern const uint8_t RF_freq[2];
-extern const uint8_t RF_speed[2];
-extern const uint8_t RF_rctl[2];
-extern const uint8_t RF_dfltr[2];
-extern const uint8_t RF_fifo[2];
-extern const uint8_t RF_sync[2];
-extern const uint8_t RF_afc[2];
-extern const uint8_t RF_tx_config[2];
-extern const uint8_t RF_pll[2];
-extern const uint8_t RF_mcu[2];
-extern const uint8_t RF_rx_read[2];
-extern const uint8_t RF_status_read[2];
+// power modes
+#define RF_RECEIVER_ON		0x8288
+#define RF_XMITTER_ON		0x8229
+#define RF_IDLE_MODE		0x8209
 
-void RF_init ( );
+#define RF_CONFIG_915MHZ	0x8077
+#define RF_CONFIG_915MHZ_TX	0x80F7
+#define RF_CONFIG_FREQ		0xA640
 
+#define RF_SYNC_BYTE		0x11
+
+void RF0_init ( );
+void RF1_init ( );
+void RF0_cmd ( uint16_t );
 
 #endif /* RF_H_ */

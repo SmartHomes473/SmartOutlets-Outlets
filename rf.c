@@ -10,176 +10,150 @@
 
 #include "msp430g2553.h"
 #include "drivers/spi.h"
+#include "drivers/spi2.h"
 #include "rf.h"
 
 #define nIRQ BIT2
 
+typedef usci_t rfm12_t;
+
 #define __wait_TX_ready()\
 	while (P1IN & BIT6);
 
-const uint8_t RF_config_tx[] = {0x80, 0xF8};
-const uint8_t RF_config_rx[] = {0x80, 0x78};
-const uint8_t RF_power_tx[] = {0x82, 0x28};
-const uint8_t RF_power_rx[] = {0x82, 0x89};
-const uint8_t RF_freq[] = {0xA6, 0x80};
-const uint8_t RF_speed[] = {0xC6, 0x02};
-const uint8_t RF_rctl[] = {0x94, 0x80};
-const uint8_t RF_dfltr[] = {0xC2, 0x2C};
-const uint8_t RF_fifo[] = {0xCA, 0x85};
-const uint8_t RF_afc[] = {0xC4, 0xF7};
-const uint8_t RF_tx_config[] = {0x98, 0x70};
-const uint8_t RF_pll[] = {0xCC, 0x77};
-const uint8_t RF_mcu[] = {0xC0, 0x00};
-const uint8_t RF_rx_read[] = {0xB0, 0x00};
-const uint8_t RF_status_read[] = {0x10, 0x00};
-
-
-
-void RF_init ( )
-{
-	// Initialize SPI
-	SPI_init(SPI_NONE);
-
-	/*
-	 * Initialize FFIT and nIRQ pins
-	 *
-	 * FFIT goes high when the FIFO buffer has data to read.
-	 * nIRQ goes high when 
-	 *
-	 */
-	P2SEL &= ~nIRQ;
-	P2SEL2 &= ~nIRQ;
-	P2DIR &= ~nIRQ;
-
-	/*
-	 * Configure the RF module for transmit and receive
-	 * on the 915MHz ISM band.
-	 *
-	 * 902.4 MHz, 4.8kbps
-	 */
-//	uint8_t config[] = {0x80, 0xE8};
-//	uint8_t afc[] = {0xC4, 0x83};
-//	uint8_t bw[] = {0x98, 0x24};
-//	uint8_t band[] = {0xA6, 0x80};
-//	uint8_t fifo[] = {0xCA, 0x83};
-//	uint8_t synchron[] = {0xCE, 0xC2};
-//	uint8_t rate[] = {0xC6, 0x26};
-//	uint8_t power[] = {0x82, 0x19};
-//	uint8_t pll[] = {0xCC, 0x16};
-//
-//	SPI_send(config, sizeof(config));
-//	SPI_send(afc, sizeof(afc));
-//	SPI_send(bw, sizeof(bw));
-//	SPI_send(band, sizeof(band));
-//	SPI_send(fifo, sizeof(fifo));
-//	SPI_send(synchron, sizeof(synchron));
-//	SPI_send(rate, sizeof(rate));
-//	SPI_send(power, sizeof(power));
-//	SPI_send(pll, sizeof(pll));
-
-
-	SPI_send(RF_config_rx, sizeof(RF_config_rx));
-	SPI_send(RF_power_rx, sizeof(RF_power_rx));
-	SPI_send(RF_freq, sizeof(RF_freq));
-	SPI_send(RF_speed, sizeof(RF_speed));
-	SPI_send(RF_rctl, sizeof(RF_rctl));
-	SPI_send(RF_dfltr, sizeof(RF_dfltr));
-	SPI_send(RF_afc, sizeof(RF_afc));
-	SPI_send(RF_tx_config, sizeof(RF_tx_config));
-	SPI_send(RF_mcu, sizeof(RF_mcu));
-	SPI_send(RF_status_read, sizeof(RF_status_read));
+#define __spi_send(USCI, BYTE)\
+{\
+	while (!(IFG2&USCI->TXIFG));\
+	USCI->UCxx->TXBUF = BYTE;\
 }
 
-ssize_t RF_recv ( uint8_t *data, size_t len )
+void __rfm12_send_cmd ( rfm12_t *usci, uint16_t cmd )
 {
-	if (len != 2) {
-		return -1;
+	__spi_send(usci, (uint8_t)(cmd>>8));
+	__spi_send(usci, (uint8_t)(cmd&0xFF));
+}
+
+#define RF0_send_cmd(CMD)\
+{\
+	P2OUT &= ~BIT0;\
+	__rfm12_send_cmd(USCI_B0, CMD);\
+	while (USCI_B0->UCxx->STAT&UCBUSY);\
+	P2OUT |= BIT0;\
+}
+#define RF1_send_cmd(CMD)\
+{\
+	P2OUT &= ~BIT1;\
+	 __rfm12_send_cmd(USCI_A0, CMD);\
+	 while (USCI_A0->UCxx->STAT&UCBUSY);\
+	 P2OUT |= BIT1;\
+}
+
+
+void RF0_init ( )
+{
+	// initialize SPI
+	SPI_init(SPI_NONE);
+
+	// TODO: config nIRQ
+
+	// initialization
+	RF0_send_cmd(RF_RECEIVER_ON);
+	RF0_send_cmd(RF_CONFIG_915MHZ);
+	RF0_send_cmd(0xA640);
+	RF0_send_cmd(0xC647);
+	RF0_send_cmd(0x94A2);
+	RF0_send_cmd(0xC2AC);
+
+	// FIFO mode, 2 byte sync
+	RF0_send_cmd(0xCA837);
+	RF0_send_cmd(0xCE00 | RF_SYNC_BYTE);
+
+	RF0_send_cmd(0xA640);
+	RF0_send_cmd(0x9850);
+	RF0_send_cmd(0xCC77);
+	RF0_send_cmd(0xE000);
+	RF0_send_cmd(0xC800);
+	RF0_send_cmd(0xC049);
+
+	// read status
+	RF0_send_cmd(0x0100);
+}
+
+void RF1_init ( )
+{
+	// initialize SPI
+	SPI2_init(SPI_NONE);
+
+	// TODO: config nIRQ
+
+	// initialization
+	RF1_send_cmd(RF_RECEIVER_ON);
+	RF1_send_cmd(RF_CONFIG_915MHZ);
+	RF1_send_cmd(0xA640);
+	RF1_send_cmd(0xC647);
+	RF1_send_cmd(0x94A2);
+	RF1_send_cmd(0xC2AC);
+
+	// FIFO mode, 2 byte sync
+	RF1_send_cmd(0xCA83);
+	RF1_send_cmd(0xCE00 | RF_SYNC_BYTE);
+
+	RF1_send_cmd(0xA640);
+	RF1_send_cmd(0x9850);
+	RF1_send_cmd(0xCC77);
+	RF1_send_cmd(0xE000);
+	RF1_send_cmd(0xC800);
+	RF1_send_cmd(0xC049);
+
+	// read status
+	RF1_send_cmd(0x0100);
+}
+
+void RF0_tx ( uint8_t *data, size_t len )
+{
+	// enable tx
+	RF0_send_cmd(0x1000);
+	RF0_send_cmd(RF_CONFIG_915MHZ_TX);
+	RF0_send_cmd(RF_XMITTER_ON);
+
+	P2OUT &= ~BIT0;
+	__spi_send(USCI_B0, 0xB8);
+
+	size_t index;
+	for (index = 0; index < len; ++index) {
+		while (P1IN&BIT6);
+		while (USCI_B0->UCxx->STAT&UCBUSY);
+		__spi_send(USCI_B0, data[index]);
 	}
 
-	SPI_send(RF_rx_read, sizeof(RF_rx_read));
-	return SPI_recv(data, len, '\0', USCI_BLOCKING);
+	while (USCI_B0->UCxx->STAT&UCBUSY);
+	P2OUT |= BIT0;
+
+	// enable rx
+	RF0_send_cmd(0x1000);
+	RF0_send_cmd(0x8077);
+	RF0_send_cmd(0x8281);
+	RF0_send_cmd(0x1000);
+}
+
+ssize_t RF1_recv ( uint8_t *data, size_t len )
+{
 } 
 
 
 ssize_t RF_status ( uint8_t *data, size_t len )
 {
-	if (len != 2) {
-		return -1;
-	}
-
-	SPI_send(RF_status_read, sizeof(RF_status_read));
-	return SPI_recv(data, len, '\0', USCI_BLOCKING);
 }
 
 ssize_t RF_send ( uint8_t *data, size_t len ) 
 {
-	size_t index;
-	uint8_t tx_data[2];
-
-	// TODO: enable TX and send pramble
-	uint8_t cmd[2];
-
-	cmd[0] = 0x00;
-	cmd[1] = 0x00;
-	SPI_send(cmd, sizeof(cmd));
-
-	cmd[0] = 0x82;
-	cmd[1] = 0x39;
-	SPI_send(cmd, sizeof(cmd));
-
-	uint8_t tx_buf[] = { 0xb8, 0xaa, 0xaa, 0x2d, 0xc2, 0xaa, 0xaa};
-
-	P2OUT &= ~BIT0;
-
-	index = 0;
-	while (index < sizeof(tx_buf)) {
-		__wait_TX_ready();
-		while (!(IFG2&USCI_B0->TXIFG));
-		USCI_B0->UCxx->TXBUF = tx_buf[index];
-		++index;
-	}
-
-	flush(USCI_B0);
-	P2OUT |= BIT0;
-
-//	SPI_send(RF_config_tx, sizeof(RF_config_tx));
-//	SPI_send(RF_power_tx, sizeof(RF_power_tx));
-//	SPI_send(RF_status_read, sizeof(RF_status_read));
-
-
-
-//	index = 0;
-//	tx_data[0] = 0xB8;
-
-//	while (index < len) {
-//		// when MISO/SDO is low, TX buffer is ready for more data
-//		__wait_TX_ready();
-//
-//
-//		// transmit next byte
-//		tx_data[1] = data[index];
-//		SPI_send(tx_data, sizeof(tx_data));
-//
-//		++index;
-//	}
-
-	// Write a dummy byte to make sure the entire message was sent
-//	__wait_TX_ready();
-//	SPI_send(tx_data, sizeof(tx_data));
-//	__wait_TX_ready();
-
-	// Turn off TX
-	SPI_send(RF_power_rx, sizeof(RF_power_rx));
-	SPI_send(RF_config_rx, sizeof(RF_config_rx));
 }
 
-
+void RF0_cmd ( uint16_t cmd )
+{
+	RF0_send_cmd(cmd);
+}
 
 __attribute__((interrupt()))
 void RFIRQ  ( void )
 {
-	uint8_t status[2];
-
-	// read status
-	RF_status(status, sizeof(status));
 }

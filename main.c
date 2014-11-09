@@ -14,33 +14,50 @@
 #include "drivers/spi.h"
 #include "drivers/spi2.h"
 #include "rf.h"
-#include "rf2.h"
 #include "meter.h"
 #include "relay.h"
 
 int main(void)
-	{
+{
 	// Initialize MSP430
 	MSP430_init();
 	enable_interrupts();
 
 	// Initialize hardware
-//	RELAY_init();
-//	METER_init();
-	RF_init();
-	RF2_init();
+	SPI_init(SPI_NONE);
 
-	while (1)
-	{
-		uint8_t message[] = {0x11, 0x22, 0x33};
-		uint8_t readrq[] = {0xB0, 0x00, 0x00, 0x00};
-		uint8_t status[] = {0x01, 0x00, 0x00, 0x00};
-		RF_send(message, sizeof(message));
-		SPI2_send(status, sizeof(status));
-		SPI2_send(readrq, sizeof(readrq));
-		SPI2_send(readrq, sizeof(readrq));
-		SPI2_send(readrq, sizeof(readrq));
-		SPI2_send(readrq, sizeof(readrq));
-	};
+	P1SEL &= ~BIT4;
+	P1SEL2 &= ~BIT4;
+	P1DIR &= ~BIT4;
+
+	// initialization
+	RF0_cmd(0x8077);
+	RF0_cmd(0x8281);
+	RF0_cmd(0xA680);
+	RF0_cmd(0xC602);
+	RF0_cmd(0x9482);
+	RF0_cmd(0xC2AC);
+
+	// FIFO mode, 2 byte sync
+	RF0_cmd(0xCA80);
+	RF0_cmd(0xCED4);
+
+	RF0_cmd(0xC483);
+	RF0_cmd(0x9870);
+	RF0_cmd(0xCC77);
+	RF0_cmd(0xE000);
+	RF0_cmd(0xC800);
+	RF0_cmd(0xC000);
+
+	RF0_cmd(0x0100);
+
+	uint8_t data[] = {0x2D, 0xD4, 0x11, 0x22, 0x33, 0x44, 0xAA, 0xAA, 0xAA};
+	RF0_tx(data, sizeof(data));
+
+	while (1) {
+		if (P1IN & BIT4) {
+			RF0_cmd(0x0100);
+		}
+	}
 }
 
