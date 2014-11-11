@@ -18,7 +18,7 @@
 #define RF_POWER_TX		0x8221
 
 #define RF_CENTER_FREQ	0xA680
-#define RF_DATA_RATE	0xC647
+#define RF_DATA_RATE	0xC611
 #define RF_RECV_CTL		0x94C5
 #define RF_DATA_FILTER	0xC2EC
 #define RF_FIFO_SYNC	0xCA83

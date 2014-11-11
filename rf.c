@@ -55,27 +55,32 @@ void RF0_init ( )
 
 	// TODO: config nIRQ
 
+	// Initialize hardware
+	SPI_init(SPI_NONE);
+
+	// nIRQ
+	P1SEL &= ~BIT4;
+	P1SEL2 &= ~BIT4;
+	P1DIR &= ~BIT4;
+
 	// initialization
-//	RF0_send_cmd(RF_RECEIVER_ON);
-//	RF0_send_cmd(RF_CONFIG_915MHZ);
-//	RF0_send_cmd(0xA640);
-//	RF0_send_cmd(0xC647);
-//	RF0_send_cmd(0x94A2);
-//	RF0_send_cmd(0xC2AC);
-//
-//	// FIFO mode, 2 byte sync
-//	RF0_send_cmd(0xCA837);
-//	RF0_send_cmd(0xCE00 | RF_SYNC_BYTE);
-//
-//	RF0_send_cmd(0xA640);
-//	RF0_send_cmd(0x9850);
-//	RF0_send_cmd(0xCC77);
-//	RF0_send_cmd(0xE000);
-//	RF0_send_cmd(0xC800);
-//	RF0_send_cmd(0xC049);
-//
-//	// read status
-//	RF0_send_cmd(0x0100);
+	RF0_send_cmd(RF_CONFIG_RX);
+	RF0_send_cmd(RF_POWER_RX);
+	RF0_send_cmd(RF_CENTER_FREQ);
+	RF0_send_cmd(RF_DATA_RATE);
+	RF0_send_cmd(RF_RECV_CTL);
+	RF0_send_cmd(RF_DATA_FILTER);
+
+	// FIFO mode, 2 byte sync
+	RF0_send_cmd(RF_FIFO_SYNC);
+	RF0_send_cmd(RF_SYNC_MODE);
+
+	RF0_send_cmd(RF_AFC_CMD);
+	RF0_send_cmd(RF_TX_CTL);
+	RF0_send_cmd(RF_PLL_CFG);
+	RF0_send_cmd(RF_WAKEUP);
+	RF0_send_cmd(RF_DUTY_CYCLE);
+	RF0_send_cmd(RF_LOW_BATTERY);
 }
 
 void RF1_init ( )
