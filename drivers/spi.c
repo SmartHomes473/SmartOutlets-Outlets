@@ -48,7 +48,7 @@ void SPI_init ( uint8_t options )
 
 	// Configure clock
 	UCB0CTL1 |= UCSSEL_2;
-	UCB0BR0 |= 0x01;
+	UCB0BR0 |= 0x08;
 	UCB0BR1 |= 0x00;
 
 	// Initialize USCI_B0 buffer

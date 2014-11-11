@@ -12,7 +12,7 @@
 
 #define __MSP430_init_clk()\
 	DCOCTL = 0;\
-	BCSCTL1 = CALBC1_1MHZ;\
-	DCOCTL = CALDCO_1MHZ;
+	BCSCTL1 = CALBC1_16MHZ;\
+	DCOCTL = CALDCO_16MHZ;
 
 #endif
