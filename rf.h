@@ -19,7 +19,7 @@
 
 #define RF_CENTER_FREQ	0xA680
 #define RF_DATA_RATE	0xC602
-#define RF_RECV_CTL		0x949D
+#define RF_RECV_CTL		0x9485
 #define RF_DATA_FILTER	0xC2EC
 #define RF_FIFO_SYNC	0xCA83
 #define RF_FIFO_RESET	0xCA81

@@ -49,12 +49,12 @@ int main(void)
 	send_cmd(RF_DUTY_CYCLE);
 	send_cmd(RF_LOW_BATTERY);
 
-	uint8_t tx = 0;
+	uint8_t tx = 1;
 	while (1) {
 		uint8_t data[2];
 
 		if (tx) {
-			uint8_t tx[] = {0x11, 0x22, 0x33, 0x44};
+			uint8_t tx[] = "mello world :)";
 			RF0_tx(tx, sizeof(tx));
 		}
 
@@ -66,8 +66,10 @@ int main(void)
 				if (data[0]&0x80) {
 					SPI_reset();
 					send_cmd(RF_FIFO_READ);
-					send_cmd(RF_FIFO_RESET);
-					send_cmd(RF_FIFO_SYNC);
+				}
+				else {
+					//send_cmd(RF_FIFO_RESET);
+					//send_cmd(RF_FIFO_SYNC);
 				}
 			}
 		}
