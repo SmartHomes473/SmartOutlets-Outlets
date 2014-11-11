@@ -49,7 +49,7 @@ int main(void)
 	send_cmd(RF_DUTY_CYCLE);
 	send_cmd(RF_LOW_BATTERY);
 
-	uint8_t tx = 1;
+	uint8_t tx = 0;
 	while (1) {
 		uint8_t data[2];
 
