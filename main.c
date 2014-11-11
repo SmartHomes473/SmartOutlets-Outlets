@@ -31,32 +31,35 @@ int main(void)
 	P1DIR &= ~BIT4;
 
 	// initialization
-	RF0_cmd(0x8077);
-	RF0_cmd(0x8281);
-	RF0_cmd(0xA680);
-	RF0_cmd(0xC602);
-	RF0_cmd(0x9482);
-	RF0_cmd(0xC2AC);
+	send_cmd(RF_CONFIG_RX);
+	send_cmd(RF_POWER_RX);
+	send_cmd(RF_CENTER_FREQ);
+	send_cmd(RF_DATA_RATE);
+	send_cmd(RF_RECV_CTL);
+	send_cmd(RF_DATA_FILTER);
 
 	// FIFO mode, 2 byte sync
-	RF0_cmd(0xCA80);
-	RF0_cmd(0xCED4);
+	send_cmd(RF_FIFO_SYNC);
+	send_cmd(RF_SYNC_MODE);
 
-	RF0_cmd(0xC483);
-	RF0_cmd(0x9870);
-	RF0_cmd(0xCC77);
-	RF0_cmd(0xE000);
-	RF0_cmd(0xC800);
-	RF0_cmd(0xC000);
+	send_cmd(RF_AFC_CMD);
+	send_cmd(RF_TX_CTL);
+	send_cmd(RF_PLL_CFG);
+	send_cmd(RF_WAKEUP);
+	send_cmd(RF_DUTY_CYCLE);
+	send_cmd(RF_LOW_BATTERY);
 
-	RF0_cmd(0x0100);
-
-	uint8_t data[] = {0x2D, 0xD4, 0x11, 0x22, 0x33, 0x44, 0xAA, 0xAA, 0xAA};
-	RF0_tx(data, sizeof(data));
-
+	uint8_t tx = 1;
 	while (1) {
-		if (P1IN & BIT4) {
-			RF0_cmd(0x0100);
+		if (tx) {
+			uint8_t tx[] = {0x11, 0x22, 0x33, 0x44};
+			RF0_tx(tx, sizeof(tx));
+		}
+
+		else {
+			if (!(P1IN&BIT4)) {
+				send_cmd(RF_STATUS_READ);
+			}
 		}
 	}
 }
