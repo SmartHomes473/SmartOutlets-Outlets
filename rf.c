@@ -115,6 +115,7 @@ void RF1_init ( )
 
 #define __rf_tx_byte(BYTE)\
 {\
+	while (USCI_B0->UCxx->STAT&UCBUSY);\
 	while (!(P1IN&BIT6));\
 	__spi_send(USCI_B0, BYTE);\
 }

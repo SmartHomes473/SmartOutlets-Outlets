@@ -51,4 +51,12 @@ void SPI_init ( uint8_t options );
 #define SPI_recv(_BUFFER, _N, _DELIM, _OPTIONS)\
 	recv(USCI_B0, _BUFFER, _N, _DELIM, _OPTIONS)
 
+#define SPI_reset()\
+{\
+	disable_interrupts();\
+	USCI_B0->buffer_head = USCI_B0->buffer;\
+	USCI_B0->buffer_tail = USCI_B0->buffer;\
+	USCI_B0->data_ready = 0;\
+	enable_interrupts();\
+}
 #endif

@@ -62,5 +62,7 @@ void SPI_init ( uint8_t options )
 	UCB0CTL1 &= ~UCSWRST;
 
 	// Enable interrupts
-	IE2 |= UCA0RXIE;
+	IE2 |= UCB0RXIE;
 }
+
+
