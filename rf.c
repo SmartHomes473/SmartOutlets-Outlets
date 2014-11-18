@@ -83,41 +83,6 @@ void RF0_init ( )
 	RF0_send_cmd(RF_LOW_BATTERY);
 }
 
-void RF1_init ( )
-{
-	// initialize SPI
-	SPI2_init(SPI_NONE);
-
-	// TODO: config nIRQ
-
-	// initialization
-//	RF1_send_cmd(RF_RECEIVER_ON);
-//	RF1_send_cmd(RF_CONFIG_915MHZ);
-//	RF1_send_cmd(0xA640);
-//	RF1_send_cmd(0xC647);
-//	RF1_send_cmd(0x94A2);
-//	RF1_send_cmd(0xC2AC);
-//
-//	// FIFO mode, 2 byte sync
-//	RF1_send_cmd(0xCA83);
-//	RF1_send_cmd(0xCE00 | RF_SYNC_BYTE);
-//
-//	RF1_send_cmd(0xA640);
-//	RF1_send_cmd(0x9850);
-//	RF1_send_cmd(0xCC77);
-//	RF1_send_cmd(0xE000);
-//	RF1_send_cmd(0xC800);
-//	RF1_send_cmd(0xC049);
-//
-//	// read status
-//	RF1_send_cmd(0x0100);
-}
-
-
-////	while (!(P1IN&BIT6));
-//#define __generate_preamble()\
-//	__rf_tx_byte(0xAA);
-
 #define __rf_tx_byte(BYTE)\
 {\
 	while (USCI_B0->UCxx->STAT&UCBUSY);\
@@ -125,8 +90,9 @@ void RF1_init ( )
 	__spi_send(USCI_B0, BYTE);\
 }
 
-void RF0_tx ( uint8_t *data, size_t len )
+void RF0_tx ( uint16_t destination, uint8_t *data, size_t len )
 {
+	static uint8_t packet_id = 0;
 	size_t index;
 
 	// enable tx
@@ -136,22 +102,74 @@ void RF0_tx ( uint8_t *data, size_t len )
 	// power on transmitter
 	RF0_send_cmd(RF_POWER_TX);
 
-	// generate preamble (0xAA)
-//	__generate_preamble();
-//	__generate_preamble();
-
 	// start transmit
 	P2OUT &= ~BIT0;
 	while (!(P1IN&BIT6));
 	__spi_send(USCI_B0, 0xB8);
+
+	// generate a preamble so receiver can lock our frequency
 	__rf_tx_byte(0xAA);
 	__rf_tx_byte(0xAA);
+
+	// send synchronization bytes
 	__rf_tx_byte(RF_SYNC_BYTE1);
 	__rf_tx_byte(RF_SYNC_BYTE0);
 
+	/*
+	 * generate header
+	 *
+	 * The header has the following form:
+	 *
+	 *   - start delimiter (2 bytes)
+	 *   - destination device (2 bytes)
+	 *   - source device (2 bytes)
+	 *   - payload size (2 bytes)
+	 *   - packet ID (1 byte)
+	 *   - header checksum (destination + source + ID)
+	 */
+	uint8_t header_checksum = 0;
+
+	// calculate checksum
+	header_checksum += (uint8_t)(OUTLET_ID>>8) + (uint8_t)(OUTLET_ID&0xFF);
+	header_checksum += (uint8_t)(destination>>8) + (uint8_t)(destination&0xFF);
+	header_checksum += (uint8_t)(len>>8) + (uint8_t)(len&0xFF);
+	header_checksum += packet_id;
+	header_checksum = 0xFF - header_checksum;
+
+	// send packet delimiters
+	__rf_tx_byte(RF_PACKET_START_DELIM1);
+	__rf_tx_byte(RF_PACKET_START_DELIM0);
+
+	// send destination
+	__rf_tx_byte((uint8_t)(destination>>8));
+	__rf_tx_byte((uint8_t)(destination&0xFF));
+
+	// send source
+	__rf_tx_byte((uint8_t)(OUTLET_ID>>8));
+	__rf_tx_byte((uint8_t)(OUTLET_ID&0xFF));
+
+	// send payload size
+	__rf_tx_byte((uint8_t)(len>>8));
+	__rf_tx_byte((uint8_t)(len&0xFF));
+
+	// send packet id
+	__rf_tx_byte(packet_id);
+	++packet_id;
+
+	// send header checksum
+	__rf_tx_byte(header_checksum);
+
+	// transmit data
 	for (index = 0; index < len; ++index) {
 		__rf_tx_byte(data[index]);
 	}
+
+	// end packet
+	__rf_tx_byte(RF_PACKET_END_DELIM);
+
+	// generate postamble
+	__rf_tx_byte(0xAA);
+	__rf_tx_byte(0xAA);
 
 	while (USCI_B0->UCxx->STAT&UCBUSY);
 	P2OUT |= BIT0;
@@ -160,6 +178,14 @@ void RF0_tx ( uint8_t *data, size_t len )
 	// enable rx
 	RF0_send_cmd(RF_CONFIG_RX);
 	RF0_send_cmd(RF_POWER_RX);
+}
+
+/**
+ *
+ */
+ssize_t RF0_recv ( uint8_t *buffer, size_t len )
+{
+
 }
 
 ssize_t RF1_recv ( uint8_t *data, size_t len )

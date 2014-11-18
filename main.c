@@ -26,13 +26,13 @@ int main(void)
 	// Initialize RFM12B
 	RF0_init();
 
-	uint8_t tx = 1;
+	uint8_t tx = 0;
 	while (1) {
 		uint8_t data[2];
 
 		if (tx) {
 			uint8_t tx[] = "mello world :)";
-			RF0_tx(tx, sizeof(tx));
+			RF0_tx(0x00, tx, sizeof(tx));
 		}
 
 		else {

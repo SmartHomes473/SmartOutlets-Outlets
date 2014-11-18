@@ -34,6 +34,10 @@
 #define RF_FIFO_READ	0xB000
 #define RF_STATUS_READ	0x1000
 
+#define RF_PACKET_START_DELIM1 0xD9
+#define RF_PACKET_START_DELIM0 0x9D
+#define RF_PACKET_END_DELIM 0xB9
+
 void RF0_init ( );
 void RF1_init ( );
 void send_cmd ( uint16_t );
