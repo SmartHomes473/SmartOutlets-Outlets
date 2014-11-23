@@ -22,7 +22,8 @@ static const uint8_t METER_begin_conv[] = {0xD5};
 static const uint8_t METER_cal_DC_offset[] = {};
 static const uint8_t METER_cal_AC_offset[] = {};
 static const uint8_t METER_cal_gain[] = {};
-static const uint8_t METER_read_power[] = {};
+static const uint8_t METER_read_power[] = {0x04};
+static const uint8_t METER_set_page_16[] = {0x90};
 
 /**
  * Wait until the DRDY flag is set in the Status0 register.
@@ -54,10 +55,11 @@ void METER_init ( )
 {
 	uint8_t buffer[4];
 	volatile long long i;
+
 	// Try resetting the meter @ 128,000 baud
 	UART_init(UART_128000_BAUD);
 	UART_send(METER_reset, sizeof(METER_reset));
-	//for (i = 1000; i > 0; --i);
+
 	// Try resetting the meter @ 600 baud
 	UART_flush();
 	UART_init(UART_600_BAUD);
@@ -78,6 +80,10 @@ void METER_init ( )
 	// TODO: enable highpass filer? (config2)
 
 	// TODO: enable Integrator for Rogowski coil (config2)
+
+
+	// Set register page to 16 for reading power measurements
+	UART_send(METER_set_page_16, sizeof(METER_set_page_16));
 
 	// Calibrate DC offset
 //	UART_send(METER_cal_DC_offset, sizeof(METER_cal_DC_offset));
@@ -100,11 +106,12 @@ void METER_begin ( )
 	UART_send(METER_begin_conv, sizeof(METER_begin_conv));
 }
 
-uint16_t METER_read ( )
+uint32_t METER_read ( )
 {
-	uint64_t power;
+//	uint64_t power;
 	uint8_t data[3];
 
+	// send read command
 	UART_send(METER_read_power, sizeof(METER_read_power));
 	UART_recv(data, sizeof(data), '\0', USCI_BLOCKING);
 
@@ -119,9 +126,10 @@ uint16_t METER_read ( )
 	 *       value.  Not sure if this is right...
 	 *  FIXME: this is really slow. http://www.ti.com/lit/an/slaa329/slaa329.pdf
 	 */
-	power = (uint64_t)(data[0] + ((uint32_t)data[1]<<8) + ((uint32_t)(data[2]&0x7F)<<16));
-	power *= 7000;
-	power /= 0x2E147B;
+//	power = (uint64_t)(data[0] + ((uint32_t)data[1]<<8) + ((uint32_t)(data[2]&0x7F)<<16));
+//	power *= 7000;
+//	power /= 0x2E147B;
+//	return (uint16_t)power;
 
-	return (uint16_t)power;
+	return data[0] + (uint32_t)data[1]<<8 + (uint32_t)data[2]<<16;
 }

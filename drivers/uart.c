@@ -34,22 +34,22 @@ void UART_init ( uint8_t options )
 	// http://mspgcc.sourceforge.net/baudrate.html
 	switch (options) {
 		case UART_600_BAUD:
-			br0 = 104;
-			br1 = 0;
-			mctl = UCBRF0 | UCBRF1 | UCOS16;
+			br0 = 0x82;
+			br1 = 0x06;
+			mctl = UCBRF0 | UCBRF1 | UCBRF3 | UCOS16;
 			break;
 
 		case UART_128000_BAUD:
-			br0 = 7l;
+			br0 = 125;
 			br1 = 0;
-			mctl = UCBRS0 | UCBRS1 | UCBRS2;
+			mctl = 0;
 			break;
 
 		case UART_9600_BAUD:
 		default:
 			br0 = 104;
 			br1 = 0;
-			mctl = UCBRS0;
+			mctl = UCBRF0 | UCBRF1 | UCOS16;
 	}
 
 	// Configure clock and UART modulation

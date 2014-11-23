@@ -10,7 +10,6 @@
 
 #include "msp430g2553.h"
 #include "drivers/spi.h"
-#include "drivers/spi2.h"
 #include "rf.h"
 
 #define nIRQ BIT2
@@ -32,13 +31,6 @@ void __rfm12_send_cmd ( rfm12_t *usci, uint16_t cmd )
 	__spi_send(usci, (uint8_t)(cmd&0xFF));
 }
 
-#define RF0_send_cmd(CMD)\
-{\
-	P2OUT &= ~BIT0;\
-	__rfm12_send_cmd(USCI_B0, CMD);\
-	while (USCI_B0->UCxx->STAT&UCBUSY);\
-	P2OUT |= BIT0;\
-}
 #define RF1_send_cmd(CMD)\
 {\
 	P2OUT &= ~BIT1;\
@@ -90,7 +82,7 @@ void RF0_init ( )
 	__spi_send(USCI_B0, BYTE);\
 }
 
-void RF0_tx ( uint16_t destination, uint8_t *data, size_t len )
+void RF0_tx ( uint8_t dest, uint8_t opcode, uint8_t *data, size_t len )
 {
 	static uint8_t packet_id = 0;
 	size_t index;
@@ -116,24 +108,26 @@ void RF0_tx ( uint16_t destination, uint8_t *data, size_t len )
 	__rf_tx_byte(RF_SYNC_BYTE0);
 
 	/*
-	 * generate header
+	 * generate and send header
 	 *
 	 * The header has the following form:
 	 *
-	 *   - start delimiter (2 bytes)
-	 *   - destination device (2 bytes)
-	 *   - source device (2 bytes)
-	 *   - payload size (2 bytes)
-	 *   - packet ID (1 byte)
-	 *   - header checksum (destination + source + ID)
+	 *   - start identifier		(2 bytes)
+	 *   - destination device	(1 byte)
+	 *   - source device		(1 byte)
+	 *   - packet ID			(1 byte)
+	 *   - opcode				(1 byte)
+	 *   - payload size			(1 byte)
+	 *   - header checksum
 	 */
 	uint8_t header_checksum = 0;
 
 	// calculate checksum
-	header_checksum += (uint8_t)(OUTLET_ID>>8) + (uint8_t)(OUTLET_ID&0xFF);
-	header_checksum += (uint8_t)(destination>>8) + (uint8_t)(destination&0xFF);
-	header_checksum += (uint8_t)(len>>8) + (uint8_t)(len&0xFF);
+	header_checksum += OUTLET_ID;
+	header_checksum += dest;
 	header_checksum += packet_id;
+	header_checksum += opcode;
+	header_checksum += len;
 	header_checksum = 0xFF - header_checksum;
 
 	// send packet delimiters
@@ -141,20 +135,19 @@ void RF0_tx ( uint16_t destination, uint8_t *data, size_t len )
 	__rf_tx_byte(RF_PACKET_START_DELIM0);
 
 	// send destination
-	__rf_tx_byte((uint8_t)(destination>>8));
-	__rf_tx_byte((uint8_t)(destination&0xFF));
+	__rf_tx_byte(dest);
 
 	// send source
-	__rf_tx_byte((uint8_t)(OUTLET_ID>>8));
-	__rf_tx_byte((uint8_t)(OUTLET_ID&0xFF));
-
-	// send payload size
-	__rf_tx_byte((uint8_t)(len>>8));
-	__rf_tx_byte((uint8_t)(len&0xFF));
+	__rf_tx_byte(OUTLET_ID);
 
 	// send packet id
-	__rf_tx_byte(packet_id);
-	++packet_id;
+	__rf_tx_byte(packet_id++);
+
+	// send opcode
+	__rf_tx_byte(opcode);
+
+	// send payload size
+	__rf_tx_byte(len);
 
 	// send header checksum
 	__rf_tx_byte(header_checksum);
@@ -174,39 +167,27 @@ void RF0_tx ( uint16_t destination, uint8_t *data, size_t len )
 	while (USCI_B0->UCxx->STAT&UCBUSY);
 	P2OUT |= BIT0;
 
-
 	// enable rx
 	RF0_send_cmd(RF_CONFIG_RX);
 	RF0_send_cmd(RF_POWER_RX);
 }
 
-/**
- *
- */
-ssize_t RF0_recv ( uint8_t *buffer, size_t len )
+void RF0_send_ack ( uint8_t msg_id )
 {
-
+	uint8_t data[] = {msg_id};
+	RF0_tx(0x01, 0x00, data, sizeof(data));
 }
 
-ssize_t RF1_recv ( uint8_t *data, size_t len )
+void RF0_send_power ( uint32_t power, uint8_t msg_id )
 {
-} 
-
-
-ssize_t RF_status ( uint8_t *data, size_t len )
-{
+	uint8_t data[] = {(uint8_t)power, (uint8_t)(power>>8), (uint8_t)(power>>16)};
+	RF0_tx(0x01, 0x00, data, sizeof(data));
 }
 
-ssize_t RF_send ( uint8_t *data, size_t len ) 
+void RF0_send_cmd ( uint16_t cmd )
 {
-}
-
-void send_cmd ( uint16_t cmd )
-{
-	RF0_send_cmd(cmd);
-}
-
-__attribute__((interrupt()))
-void RFIRQ  ( void )
-{
+	P2OUT &= ~BIT0;
+	__rfm12_send_cmd(USCI_B0, cmd);
+	while (USCI_B0->UCxx->STAT&UCBUSY);
+	P2OUT |= BIT0;
 }

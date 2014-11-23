@@ -18,7 +18,7 @@
 #define RF_POWER_TX		0x8221
 
 #define RF_CENTER_FREQ	0xA680
-#define RF_DATA_RATE	0xC611
+#define RF_DATA_RATE	0xC647
 #define RF_RECV_CTL		0x94C5
 #define RF_DATA_FILTER	0xC2EC
 #define RF_FIFO_SYNC	0xCA83
@@ -39,7 +39,9 @@
 #define RF_PACKET_END_DELIM 0xB9
 
 void RF0_init ( );
-void RF1_init ( );
-void send_cmd ( uint16_t );
+void RF0_send_ack ( uint8_t msg_id );
+void RF0_send_power ( uint32_t power, uint8_t msg_id );
+void RF0_tx ( uint8_t dest, uint8_t opcode, uint8_t *data, size_t len );
+void RF0_send_cmd ( uint16_t );
 
 #endif /* RF_H_ */
