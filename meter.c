@@ -108,28 +108,11 @@ void METER_begin ( )
 
 uint32_t METER_read ( )
 {
-//	uint64_t power;
 	uint8_t data[3];
 
 	// send read command
 	UART_send(METER_read_power, sizeof(METER_read_power));
 	UART_recv(data, sizeof(data), '\0', USCI_BLOCKING);
-
-	/**
-	 * Power is provided on a scale of 0 to 0xFFFFFF.  The maximum value
-	 * is 140V * 50A = 7000W which is represented by 0x2E147B.  Thus, we
-	 * calculate power to be:
-	 *
-	 *  Power = (REG_power * 7000) / 0x2E147B
-	 *
-	 *  XXX: I'm masking off the sign bit (msb of data[2]) to get the absolute
-	 *       value.  Not sure if this is right...
-	 *  FIXME: this is really slow. http://www.ti.com/lit/an/slaa329/slaa329.pdf
-	 */
-//	power = (uint64_t)(data[0] + ((uint32_t)data[1]<<8) + ((uint32_t)(data[2]&0x7F)<<16));
-//	power *= 7000;
-//	power /= 0x2E147B;
-//	return (uint16_t)power;
 
 	return data[0] + (uint32_t)data[1]<<8 + (uint32_t)data[2]<<16;
 }

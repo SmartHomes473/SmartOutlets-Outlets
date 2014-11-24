@@ -181,7 +181,7 @@ void RF0_send_ack ( uint8_t msg_id )
 void RF0_send_power ( uint32_t power, uint8_t msg_id )
 {
 	uint8_t data[] = {(uint8_t)power, (uint8_t)(power>>8), (uint8_t)(power>>16)};
-	RF0_tx(0x01, 0x00, data, sizeof(data));
+	RF0_tx(0x01, 0x22, data, sizeof(data));
 }
 
 void RF0_send_cmd ( uint16_t cmd )

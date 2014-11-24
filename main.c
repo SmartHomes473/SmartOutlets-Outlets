@@ -35,16 +35,17 @@ int main(void)
 
 	// Initialize power meter
 	METER_init();
+	METER_read();
 
-//	// Initialize relay
-//	RELAY_init();
-//	RELAY_on();
-//
-//	// Initialize RFM12B
-//	RF0_init();
-//
-//	// Run outlet's program loop
-//	OUTLET_run();
+	// Initialize relay
+	RELAY_init();
+	RELAY_on();
+
+	// Initialize RFM12B
+	RF0_init();
+
+	// Run outlet's program loop
+	OUTLET_run();
 
 	// trap
 	while (1);
@@ -122,7 +123,7 @@ void OUTLET_run ( )
 						break;
 
 					// OUTLET_POWER command
-					case 0x99:
+					case 0x11:
 						RF0_send_power(METER_read(), packet[4]);
 						break;
 
