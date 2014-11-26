@@ -31,7 +31,6 @@ void UART_init ( uint8_t options )
 	P1SEL = BIT1 | BIT2;
 	P1SEL2 = BIT1 | BIT2;
 
-	// http://mspgcc.sourceforge.net/baudrate.html
 	switch (options) {
 		case UART_600_BAUD:
 			br0 = 0x82;

@@ -45,15 +45,21 @@ void RF0_init ( )
 	// initialize SPI
 	SPI_init(SPI_NONE);
 
-	// TODO: config nIRQ
-
-	// Initialize hardware
-	SPI_init(SPI_NONE);
-
 	// nIRQ
-	P1SEL &= ~BIT4;
-	P1SEL2 &= ~BIT4;
-	P1DIR &= ~BIT4;
+	P2SEL &= ~BIT2;
+	P2SEL2 &= ~BIT2;
+	P2DIR &= ~BIT2;
+
+	// FFS (output HIGH)
+	P2SEL &= ~BIT1;
+	P2SEL2 &= ~BIT1;
+	P2OUT |= BIT1;
+	P2DIR |= BIT1;
+
+	// FFIT (unused input)
+	P2SEL &= ~BIT3;
+	P2SEL2 &= ~BIT3;
+	P2DIR &= !BIT3;
 
 	// initialization
 	RF0_send_cmd(RF_CONFIG_RX);

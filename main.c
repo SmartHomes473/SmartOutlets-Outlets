@@ -33,13 +33,12 @@ int main(void)
 	MSP430_init();
 	enable_interrupts();
 
-	// Initialize power meter
-	METER_init();
-	METER_read();
-
 	// Initialize relay
 	RELAY_init();
 	RELAY_on();
+
+	// Initialize power meter
+	METER_init();
 
 	// Initialize RFM12B
 	RF0_init();
@@ -62,6 +61,15 @@ void OUTLET_run ( )
 
 	// begin metering power
 	METER_begin();
+
+
+	while (1) {
+		volatile unsigned long long int i;
+		RELAY_on();
+		for (i = 400000; i > 0; --i);
+		RELAY_off();
+		for (i = 400000; i > 0; --i);
+	}
 
 	while (1) {
 		uint8_t buffer[2];

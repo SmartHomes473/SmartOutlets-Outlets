@@ -42,9 +42,8 @@ void SPI_init ( uint8_t options )
 	P2OUT |= SPI_SEL;
 	P2DIR |= SPI_SEL;
 
-	// Configure USCI_B0 as an 8-bit 4-wire SPI master
+	// Configure USCI_B0 as an 8-bit 3-wire SPI master
 	UCB0CTL0 |= UCCKPH | UCMSB | UCMST | UCSYNC;
-	//UCB0CTL0 |= UCMSB | UCMST | UCSYNC;
 
 	// Configure clock
 	UCB0CTL1 |= UCSSEL_2;
