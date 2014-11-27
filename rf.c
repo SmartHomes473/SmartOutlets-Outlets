@@ -59,7 +59,7 @@ void RF0_init ( )
 	// FFIT (unused input)
 	P2SEL &= ~BIT3;
 	P2SEL2 &= ~BIT3;
-	P2DIR &= !BIT3;
+	P2DIR &= ~BIT3;
 
 	// initialization
 	RF0_send_cmd(RF_CONFIG_RX);

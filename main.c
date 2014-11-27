@@ -25,6 +25,16 @@
 #include "meter.h"
 #include "relay.h"
 
+NAKED(RESET_VECTOR)
+{
+	/* place your startup code here */
+
+	/* Make shure, the branch to main (or to your start
+	   routine) is the last line in the function */
+	__asm__ __volatile__("br #main"::);
+}
+
+
 void OUTLET_run ( );
 
 int main(void)
@@ -42,6 +52,16 @@ int main(void)
 
 	// Initialize RFM12B
 	RF0_init();
+
+
+//	while (1) {
+//		volatile unsigned long long int i;
+//		RELAY_on();
+//		for (i = 400000; i > 0; --i);
+//		RELAY_off();
+//		for (i = 400000; i > 0; --i);
+//	}
+
 
 	// Run outlet's program loop
 	OUTLET_run();
@@ -64,21 +84,13 @@ void OUTLET_run ( )
 
 
 	while (1) {
-		volatile unsigned long long int i;
-		RELAY_on();
-		for (i = 400000; i > 0; --i);
-		RELAY_off();
-		for (i = 400000; i > 0; --i);
-	}
-
-	while (1) {
 		uint8_t buffer[2];
 
 		// TODO: convert the polling implementation to an interrupt
 		//       driven one
 
 		// poll the status pin
-		if (!(P1IN&BIT4)) {
+		if (!(P2IN&BIT2)) {
 
 			// reset SPI buffer and read status
 			SPI_reset();
