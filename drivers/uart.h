@@ -66,4 +66,8 @@ void UART_init ( uint8_t options );
 #define UART_flush()\
 	flush(USCI_A0);
 
+#define UART_clear() {\
+	usci_clear(USCI_A0);\
+}
+
 #endif

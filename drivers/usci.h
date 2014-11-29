@@ -73,5 +73,6 @@ ssize_t recv ( usci_t *usci, uint8_t *buffer, size_t n, uint8_t delim, uint8_t o
 void send ( usci_t *usci, const uint8_t *data, size_t len );
 
 void flush ( usci_t *usci );
+void usci_clear ( usci_t *usci );
 
 #endif

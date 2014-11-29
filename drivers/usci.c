@@ -140,6 +140,14 @@ void flush ( usci_t *usci )
 	while (usci->UCxx->STAT&UCBUSY);
 }
 
+void usci_clear ( usci_t *usci )
+{
+	disable_interrupts();
+	usci->buffer_head = usci->buffer;
+	usci->buffer_tail = usci->buffer;
+	usci->data_ready = 0;
+	enable_interrupts();
+}
 
 __attribute__((interrupt(USCIAB0RX_VECTOR)))
 void USCI0RX_ISR(void)

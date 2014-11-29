@@ -25,20 +25,13 @@
 #include "meter.h"
 #include "relay.h"
 
-NAKED(RESET_VECTOR)
-{
-	/* place your startup code here */
-
-	/* Make shure, the branch to main (or to your start
-	   routine) is the last line in the function */
-	__asm__ __volatile__("br #main"::);
-}
-
-
 void OUTLET_run ( );
 
 int main(void)
 {
+	// power-on delay
+	__delay_cycles(1000);
+
 	// Initialize MSP430
 	MSP430_init();
 	enable_interrupts();
@@ -50,8 +43,15 @@ int main(void)
 	// Initialize power meter
 	METER_init();
 
+	// *** DEBUG
+	METER_debug();
+	while (1);
+	// *** END
+
+
+
 	// Initialize RFM12B
-	RF0_init();
+//	RF0_init();
 
 
 //	while (1) {
