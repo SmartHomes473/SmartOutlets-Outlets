@@ -32,27 +32,36 @@ static const uint8_t METER_read_status[] = {0x80, 0x17};
 static const uint8_t METER_clear_drdy[] = {0x80, 0x57, 0x00, 0x00, 0x80};
 static const uint8_t METER_clear_crdy[] = {0x80, 0x57, 0x00, 0x00, 0x40};
 static const uint8_t METER_set_baud[] = {0x80, 0x47, 0x00, 0x40, 0x02};
-static const uint8_t METER_write_config0[] = {0x80, 0x40, 0x20, 0x20, 0xC0};
+static const uint8_t METER_write_config0[] = {0x80, 0x40, 0x00, 0x20, 0xC0};
 static const uint8_t METER_write_config1[] = {0x80, 0x41, 0xEF, 0xEE, 0x00};
-static const uint8_t METER_write_config2[] = {0x90, 0x40, 0x1A, 0x06, 0x50};
+static const uint8_t METER_write_config2[] = {0x90, 0x40, 0x0A, 0x06, 0x50};
 static const uint8_t METER_write_interrupt_mask[] = {0x80, 0x43, 0x00, 0x00, 0x80};
-static const uint8_t METER_begin_conv[] = {0xD5};
-static const uint8_t METER_read_power[] = {0x90, 0x07};
+
+static const uint8_t METER_read_power[] = {0x90, 0x05};
 static const uint8_t METER_integrator_gain[] = {0x92, 0x6B, 0x00, 0x00, 0x0C};
 
-//FIRST CALIBRATION
-//static const uint8_t METER_write_i_gain[] = {0x90, 0x61, 0x00, 0x00, 0x40};
-//static const uint8_t METER_write_v_gain[] = {0x90, 0x63, 0xD5, 0x94, 0x78};
+// Calibration gains
+static const uint8_t METER_voltage_gain[] = {0x90, 0x63, 0x95, 0x06, 0x48};
+static const uint8_t METER_current_gain[] = {0x90, 0x61, 0xFD, 0xE5, 0x88};
 
-// SECOND CALIBRATION
-//static const uint8_t METER_write_i_gain[] = {0x90, 0x61, 0x00, 0x00, 0x4B};
-//static const uint8_t METER_write_v_gain[] = {0x90, 0x63, 0xBF, 0xCD, 0x79};
+static const uint8_t METER_begin_conv[] = {0xD5};
+static const uint8_t METER_stop_conv[] = {0xD8};
+static const uint8_t METER_ac_calib[] = {0xFE};
 
+static const uint8_t METER_read_irms[] = {0x90, 0x05};
+static const uint8_t METER_read_vrms[] = {0x90, 0x06};
+static const uint8_t METER_read_pavg[] = {0x90, 0x07};
+static const uint8_t METER_read_qavg[] = {0x90, 0x0E};
+static const uint8_t METER_read_pf[] = {0x90, 0x15};
 
-// THIRD CALIBRATION
-static const uint8_t METER_write_i_gain[] = {0x90, 0x61, 0x00, 0x00, 0x40};
-static const uint8_t METER_write_v_gain[] = {0x90, 0x63, 0x00, 0x00, 0x90};
+static const uint8_t METER_set_16k_samples[] = {0x90, 0x73, 0x80, 0x3E, 0x00};
 
+static const uint8_t METER_read_igain[] = {0x90, 0x21};
+static const uint8_t METER_read_vgain[] = {0x90, 0x23};
+static const uint8_t METER_read_poff[] = {0x90, 0x24};
+static const uint8_t METER_read_qoff[] = {0x90, 0x26};
+static const uint8_t METER_read_iacoff[] = {0x90, 0x25};
+static const uint8_t METER_read_pc[] = {0x80, 0x05};
 
 /**
  * Wait until the DRDY flag is set in the Status0 register.
@@ -79,9 +88,22 @@ static const uint8_t METER_write_v_gain[] = {0x90, 0x63, 0x00, 0x00, 0x90};
 		}\
 	}
 
+typedef struct {
+	uint8_t i_gain[3];
+	uint8_t v_gain[3];
+	uint8_t i_ac_off[3];
+	uint8_t p_off[3];
+	uint8_t q_off[3];
+	uint8_t pc[3];
+} CalibParams;
 
-void METER_init ( )
+
+void METER_calibrate ( )
 {
+	CalibParams *params = (CalibParams*)((uint8_t*)0x1040);
+
+	// *** RESET
+
 	// Try resetting the meter @ 128,000 baud
 	UART_init(UART_128000_BAUD);
 	UART_send(METER_reset, sizeof(METER_reset));
@@ -99,22 +121,88 @@ void METER_init ( )
 	UART_flush();
 	UART_init(UART_128000_BAUD);
 
-	// Write configuration
-	UART_send(METER_write_config0, sizeof(METER_write_config0));
-	UART_send(METER_write_config1, sizeof(METER_write_config1));
+	// *** END RESET
 
-	// Enable integrator on current channel, HPF on voltage channel
+
+	// *** SINGLE CONVERSION
+//	UART_send(METER_single_conv, sizeof(METER_single_conv));
+	// *** END CONVERSION
+
+
+	// *** CONFIGURATION
 	UART_send(METER_write_config2, sizeof(METER_write_config2));
+	// *** END CONFIGURATION
 
-	// Set gain
-	UART_send(METER_write_i_gain, sizeof(METER_write_i_gain));
-	UART_send(METER_write_v_gain, sizeof(METER_write_v_gain));
 
-	// Set Rogowski coil integrator to 60Hz
-	UART_send(METER_integrator_gain, sizeof(METER_integrator_gain));
+	// *** SET GAINS
+	UART_send(METER_voltage_gain, sizeof(METER_voltage_gain));
+	UART_send(METER_voltage_gain, sizeof(METER_voltage_gain));
+	// *** END
 
-	// Enable interrupt on DRDY
-	UART_send(METER_write_interrupt_mask, sizeof(METER_write_interrupt_mask));
+	// *** START CONVERSION
+	UART_send(METER_begin_conv, sizeof(METER_begin_conv));
+	// *** END
+
+
+	// *** READ VALUES
+	__METER_poll_drdy();
+
+	UART_send(METER_read_irms, sizeof(METER_read_irms));
+	UART_send(METER_read_vrms, sizeof(METER_read_vrms));
+	UART_send(METER_read_pavg, sizeof(METER_read_pavg));
+	UART_send(METER_read_qavg, sizeof(METER_read_qavg));
+	UART_send(METER_read_pf, sizeof(METER_read_pf));
+
+	UART_send(METER_stop_conv, sizeof(METER_stop_conv));
+	// *** END
+
+	// *** WAIT TWO SECONDS to settle
+	__delay_cycles(2*16000000);
+	// *** END
+
+	// *** SAMPLE COUNT to 16,000
+	UART_send(METER_set_16k_samples, sizeof(METER_set_16k_samples));
+	// ***
+
+	// *** CLEAR DRDY
+	UART_send(METER_clear_drdy, sizeof(METER_clear_drdy));
+	// *** END
+
+	// *** START AC GAIN CALIBRATION
+	UART_send(METER_ac_calib, sizeof(METER_ac_calib));
+	__METER_poll_drdy();
+	// *** END AC CALIBRATION
+
+	// erase flash
+	FCTL2 = FWKEY + FSSEL0 + FN4;
+	FCTL1 = FWKEY | ERASE;
+	FCTL3 = FWKEY;
+	*(uint8_t*)params = 0;
+
+	// enable write to flash
+	FCTL1 = FWKEY | WRT;
+
+	UART_clear();
+
+	UART_send(METER_read_vgain, sizeof(METER_read_vgain));
+	UART_recv(&params->v_gain, sizeof(params->v_gain), '\0', USCI_BLOCKING);
+
+	UART_send(METER_read_igain, sizeof(METER_read_igain));
+	UART_recv(&params->i_gain, sizeof(params->i_gain), '\0', USCI_BLOCKING);
+
+	UART_send(METER_read_iacoff, sizeof(METER_read_iacoff));
+	UART_recv(&params->i_ac_off, sizeof(params->i_ac_off), '\0', USCI_BLOCKING);
+
+	UART_send(METER_read_poff, sizeof(METER_read_poff));
+	UART_recv(&params->p_off, sizeof(params->p_off), '\0', USCI_BLOCKING);
+
+	UART_send(METER_read_qoff, sizeof(METER_read_qoff));
+	UART_recv(&params->q_off, sizeof(params->q_off), '\0', USCI_BLOCKING);
+
+	UART_send(METER_read_pc, sizeof(METER_read_pc));
+	UART_recv(&params->pc, sizeof(params->pc), '\0', USCI_BLOCKING);
+
+	FCTL1 = FWKEY;
 }
 
 
@@ -138,11 +226,23 @@ void METER_ISR ( void )
 {
 	uint8_t data[3];
 
+	if (P1IFG & BIT3) {
+		// erase flash
+		FCTL2 = FWKEY + FSSEL0 + FN4;
+		FCTL1 = FWKEY | ERASE;
+		FCTL3 = FWKEY;
+		*(uint8_t*)0x1040 = 0;
+		P1IFG &= ~BIT3;
+	}
+
 	// Interrupt DO fired
 	if (DOIFG & DO_PIN) {
 		// we need access to the UART interrupts
 		DOIE &= ~DO_PIN;
 		enable_interrupts();
+
+		// clear the interrupt from the power meter
+		UART_send(METER_clear_drdy, sizeof(METER_clear_drdy));
 
 		// read power
 		UART_clear();
@@ -157,8 +257,6 @@ void METER_ISR ( void )
 		// clear our pending interrupt
 		DOIFG &= ~DO_PIN;
 		DOIE |= DO_PIN;
-
-		// clear the interrupt from the power meter
-		UART_send(METER_clear_drdy, sizeof(METER_clear_drdy));
 	}
 }
+

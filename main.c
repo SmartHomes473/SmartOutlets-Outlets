@@ -30,7 +30,7 @@ void OUTLET_run ( );
 int main(void)
 {
 	// power-on delay
-	__delay_cycles(1000);
+	__delay_cycles(10000);
 
 	// Initialize MSP430
 	MSP430_init();
@@ -38,108 +38,22 @@ int main(void)
 
 	// Initialize relay
 	RELAY_init();
-	RELAY_on();
+
+	P1SEL &= ~BIT3;
+	P1SEL2 &= ~BIT3;
+	P1DIR &= ~BIT3;
+	P1IE |= BIT3;
 
 	// Initialize power meter
-	METER_init();
+	if (*(uint8_t*)0x1040 == 0xFF) {
+		RELAY_on();
+		METER_calibrate();
+	}
 
-	// Initialize RFM12B
-	RF0_init();
-
-	// Run outlet's program loop
-	OUTLET_run();
+	// Turn off relay to signal we've finished
+	RELAY_off();
 
 	// trap
 	while (1);
 }
 
-void OUTLET_run ( )
-{
-	uint8_t *head, *tail;
-	uint8_t packet[9];
-
-	// initialize buffer pointers
-	head = packet;
-	tail = packet+sizeof(packet);
-
-	// begin metering power
-	METER_begin();
-
-
-	while (1) {
-		uint8_t buffer[2];
-
-		// TODO: convert the polling implementation to an interrupt
-		//       driven one
-
-		// poll the status pin
-		if (!(P2IN&BIT2)) {
-
-			// reset SPI buffer and read status
-			SPI_reset();
-			RF0_send_cmd(RF_STATUS_READ);
-			SPI_recv(buffer, sizeof(buffer), '\0', USCI_BLOCKING);
-
-			// check status for ready data
-			if (!(buffer[0]&0x80)) {
-				continue;
-			}
-
-			// reset SPI buffer and read byte
-			SPI_reset();
-			RF0_send_cmd(RF_FIFO_READ);
-			SPI_recv(buffer, sizeof(buffer), '\0', USCI_BLOCKING);
-
-			// store byte into packet
-			*head = buffer[1];
-			++head;
-
-			// reset packet
-			if (head == tail) {
-
-				// verify packet identifier
-				if (packet[0] == (uint8_t)0xDC && packet[1] == (uint8_t)0xDC){
-
-					// TODO: packet verification, like checksum verification
-
-					// decode opcode
-					switch (packet[5]) {
-
-					// TODO: add a SOPS module for packet decoding, etc
-
-					// OUTLET_ON command
-					case 0xAA:
-
-						// power on SSR
-						RELAY_on();
-						RF0_send_ack(packet[4]);
-
-						break;
-
-					// OUTLET_OFF command
-					case 0x55:
-
-						// power on SSR
-						RELAY_off();
-						RF0_send_ack(packet[4]);
-
-						break;
-
-					// OUTLET_POWER command
-					case 0x11:
-						RF0_send_power(metered_power, packet[4]);
-						break;
-
-					default:
-						break;
-					}
-				}
-
-				// reset to receive next packet
-				head = packet;
-				RF0_send_cmd(RF_FIFO_RESET);
-				RF0_send_cmd(RF_FIFO_SYNC);
-			}
-		}
-	}
-}
