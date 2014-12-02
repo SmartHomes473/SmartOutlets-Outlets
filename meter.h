@@ -10,8 +10,9 @@
 
 #include <stdint.h>
 
+extern volatile uint32_t metered_power;
+
 void METER_init ( );
 void METER_begin ( );
-uint32_t METER_read ( );
 
 #endif /* METER_H_ */

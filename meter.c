@@ -13,6 +13,9 @@
 #include "sys/interrupts.h"
 #include "drivers/uart.h"
 
+// Metered power
+volatile uint32_t metered_power = 0;
+
 
 // DO pin definitions
 #define DO_PIN		BIT4
@@ -34,7 +37,11 @@ static const uint8_t METER_write_config1[] = {0x80, 0x41, 0xEF, 0xEE, 0x00};
 static const uint8_t METER_write_config2[] = {0x90, 0x40, 0x1A, 0x06, 0x50};
 static const uint8_t METER_write_interrupt_mask[] = {0x80, 0x43, 0x00, 0x00, 0x80};
 static const uint8_t METER_begin_conv[] = {0xD5};
-static const uint8_t METER_read_power[] = {0x90, 0x04};
+static const uint8_t METER_read_power[] = {0x90, 0x05};
+static const uint8_t METER_integrator_gain[] = {0x92, 0x6B, 0x00, 0x00, 0x0C};
+static const uint8_t METER_write_i_gain[] = {0x90, 0x61, 0x00, 0x00, 0x40};
+static const uint8_t METER_write_v_gain[] = {0x90, 0x63, 0xD5, 0x94, 0x78};
+
 
 /**
  * Wait until the DRDY flag is set in the Status0 register.
@@ -84,72 +91,63 @@ void METER_init ( )
 	// Write configuration
 	UART_send(METER_write_config0, sizeof(METER_write_config0));
 	UART_send(METER_write_config1, sizeof(METER_write_config1));
-	UART_send(METER_write_interrupt_mask, sizeof(METER_write_interrupt_mask));
 
 	// Enable integrator on current channel, HPF on voltage channel
 	UART_send(METER_write_config2, sizeof(METER_write_config2));
 
-	// TODO: remove after debugging
-	UART_flush();
+	// Set gain
+	UART_send(METER_write_i_gain, sizeof(METER_write_i_gain));
+	UART_send(METER_write_v_gain, sizeof(METER_write_v_gain));
 
+	// Set Rogowski coil integrator to 60Hz
+	UART_send(METER_integrator_gain, sizeof(METER_integrator_gain));
+
+	// Enable interrupt on DRDY
+	UART_send(METER_write_interrupt_mask, sizeof(METER_write_interrupt_mask));
+}
+
+
+
+void METER_begin ( )
+{
 	// configure interrupt DO on p1.4
 	DOSEL &= ~DO_PIN;
 	DOSEL2 &= ~DO_PIN;
 	DODIR &= ~DO_PIN;
 	DOIFG &= ~DO_PIN;
 	DOIE |= DO_PIN;
-}
-
-void METER_begin ( )
-{
-	// TODO: wake up
 
 	// Begin continuous mode conversions
 	UART_send(METER_begin_conv, sizeof(METER_begin_conv));
 }
 
-uint32_t METER_read ( )
-{
-	uint32_t power;
-	uint8_t data[3];
-
-	// send read command
-//	__METER_poll_drdy();
-//	UART_send(METER_clear_drdy, sizeof(METER_clear_drdy));
-	UART_send(METER_read_power, sizeof(METER_read_power));
-	UART_recv(data, sizeof(data), '\0', USCI_BLOCKING);
-
-	power = (uint32_t)data[0] + ((uint32_t)data[1]<<8) + ((uint32_t)data[2]<<16);
-	return power;
-}
-
-// TODO: figure out the byte order
-
-void METER_debug ( )
-{
-	uint8_t dbg[] = {0x00};
-	UART_send(METER_begin_conv, sizeof(METER_begin_conv));
-}
-
-static uint32_t metered_power;
 
 __attribute__ ((interrupt(PORT1_VECTOR)))
-void  METER_ISR ( void )
+void METER_ISR ( void )
 {
+	uint8_t data[3];
+
 	// Interrupt DO fired
 	if (DOIFG & DO_PIN) {
 		// we need access to the UART interrupts
+		DOIE &= ~DO_PIN;
+		enable_interrupts();
 
 		// clear the interrupt from the power meter
-		UART_send(METER_read_status, sizeof(METER_read_status));
 		UART_send(METER_clear_drdy, sizeof(METER_clear_drdy));
 
 		// read power
-//		UART_clear();
-//		UART_send(METER_read_power, sizeof(METER_read_power));
-		metered_power = METER_read();
+		UART_clear();
+		UART_send(METER_read_power, sizeof(METER_read_power));
+		UART_recv(data, sizeof(data), '\0', USCI_BLOCKING);
+
+		// convert the byte array to a 32bit value
+		metered_power = (uint32_t)data[0];
+		metered_power += ((uint32_t)data[1]<<8);
+		metered_power += ((uint32_t)data[2]<<16);
 
 		// clear our pending interrupt
 		DOIFG &= ~DO_PIN;
+		DOIE |= DO_PIN;
 	}
 }

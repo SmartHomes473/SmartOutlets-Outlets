@@ -43,25 +43,8 @@ int main(void)
 	// Initialize power meter
 	METER_init();
 
-	// *** DEBUG
-	METER_debug();
-	while (1);
-	// *** END
-
-
-
 	// Initialize RFM12B
-//	RF0_init();
-
-
-//	while (1) {
-//		volatile unsigned long long int i;
-//		RELAY_on();
-//		for (i = 400000; i > 0; --i);
-//		RELAY_off();
-//		for (i = 400000; i > 0; --i);
-//	}
-
+	RF0_init();
 
 	// Run outlet's program loop
 	OUTLET_run();
@@ -144,7 +127,7 @@ void OUTLET_run ( )
 
 					// OUTLET_POWER command
 					case 0x11:
-						RF0_send_power(METER_read(), packet[4]);
+						RF0_send_power(metered_power, packet[4]);
 						break;
 
 					default:
