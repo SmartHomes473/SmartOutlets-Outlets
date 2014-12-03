@@ -47,6 +47,7 @@ static const uint8_t METER_current_gain[] = {0x90, 0x61, 0x00, 0x00, 0x50};
 static const uint8_t METER_begin_conv[] = {0xD5};
 static const uint8_t METER_stop_conv[] = {0xD8};
 static const uint8_t METER_ac_calib[] = {0xFE};
+static const uint8_t METER_ac_offset[] = {0xF1};
 
 static const uint8_t METER_read_irms[] = {0x90, 0x05};
 static const uint8_t METER_read_vrms[] = {0x90, 0x06};
@@ -170,6 +171,23 @@ void METER_calibrate ( )
 
 	// *** START AC GAIN CALIBRATION
 	UART_send(METER_ac_calib, sizeof(METER_ac_calib));
+	__METER_poll_drdy();
+	// *** END AC CALIBRATION
+
+	// *** WAIT TWO SECONDS to settle
+	__delay_cycles(2*16000000);
+	// *** END
+
+	// *** SAMPLE COUNT to 16,000
+	UART_send(METER_set_16k_samples, sizeof(METER_set_16k_samples));
+	// ***
+
+	// *** CLEAR DRDY
+	UART_send(METER_clear_drdy, sizeof(METER_clear_drdy));
+	// *** END
+
+	// *** START AC OFFSET CALIBRATION
+	UART_send(METER_ac_offset, sizeof(METER_ac_offset));
 	__METER_poll_drdy();
 	// *** END AC CALIBRATION
 
