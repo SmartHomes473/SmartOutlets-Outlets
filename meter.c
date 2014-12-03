@@ -178,10 +178,6 @@ void METER_calibrate ( )
 	__delay_cycles(2*16000000);
 	// *** END
 
-	// *** SAMPLE COUNT to 16,000
-	UART_send(METER_set_16k_samples, sizeof(METER_set_16k_samples));
-	// ***
-
 	// *** CLEAR DRDY
 	UART_send(METER_clear_drdy, sizeof(METER_clear_drdy));
 	// *** END

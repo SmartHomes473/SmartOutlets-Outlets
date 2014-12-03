@@ -54,7 +54,7 @@ int main(void)
 	}
 
 	// Turn off relay to signal we've finished
-	RELAY_off();
+	//RELAY_off();
 
 	// trap
 	while (1);
