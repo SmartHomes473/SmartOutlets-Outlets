@@ -30,7 +30,7 @@ void OUTLET_run ( );
 int main(void)
 {
 	// power-on delay
-	__delay_cycles(1000);
+	__delay_cycles(10000);
 
 	// Initialize MSP430
 	MSP430_init();

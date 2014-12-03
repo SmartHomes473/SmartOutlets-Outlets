@@ -22,7 +22,7 @@ all: $(OBJS) $(DRIVERS)
 	$(CC) $(CFLAGS) $(LDFLAGS) $? -o $(BINARY)
 
 prog: all
-	mspdebug rf2500 "prog $(BINARY)" "run"
+	mspdebug rf2500 "prog $(BINARY)"
 
 clean:
 	rm -vf *.o drivers/*.o $(BINARY)
