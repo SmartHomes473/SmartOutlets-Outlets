@@ -37,7 +37,7 @@ static const uint8_t METER_write_config1[] = {0x80, 0x41, 0xEF, 0xEE, 0x00};
 static const uint8_t METER_write_config2[] = {0x90, 0x40, 0x1A, 0x06, 0x50};
 static const uint8_t METER_write_interrupt_mask[] = {0x80, 0x43, 0x00, 0x00, 0x80};
 static const uint8_t METER_begin_conv[] = {0xD5};
-static const uint8_t METER_read_power[] = {0x90, 0x06};
+static const uint8_t METER_read_power[] = {0x90, 0x07};
 static const uint8_t METER_integrator_gain[] = {0x92, 0x6B, 0x00, 0x00, 0x0C};
 
 //FIRST CALIBRATION

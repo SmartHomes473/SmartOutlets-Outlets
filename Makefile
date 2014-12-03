@@ -24,6 +24,9 @@ all: $(OBJS) $(DRIVERS)
 prog: all
 	mspdebug rf2500 "prog $(BINARY)"
 
+read:
+	mspdebug rf2500 "md 0x1040"
+
 clean:
 	rm -vf *.o drivers/*.o $(BINARY)
 
