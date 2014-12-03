@@ -44,6 +44,9 @@ int main(void)
 	P1DIR &= ~BIT3;
 	P1IE |= BIT3;
 
+	RELAY_on();
+
+
 	// Initialize power meter
 	if (*(uint8_t*)0x1040 == 0xFF) {
 		RELAY_on();

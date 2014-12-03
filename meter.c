@@ -41,8 +41,8 @@ static const uint8_t METER_read_power[] = {0x90, 0x05};
 static const uint8_t METER_integrator_gain[] = {0x92, 0x6B, 0x00, 0x00, 0x0C};
 
 // Calibration gains
-static const uint8_t METER_voltage_gain[] = {0x90, 0x63, 0x95, 0x06, 0x48};
-static const uint8_t METER_current_gain[] = {0x90, 0x61, 0xFD, 0xE5, 0x88};
+static const uint8_t METER_voltage_gain[] = {0x90, 0x63, 0x00, 0x00, 0x50};
+static const uint8_t METER_current_gain[] = {0x90, 0x61, 0x00, 0x00, 0x50};
 
 static const uint8_t METER_begin_conv[] = {0xD5};
 static const uint8_t METER_stop_conv[] = {0xD8};
