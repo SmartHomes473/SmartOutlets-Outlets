@@ -203,6 +203,10 @@ void METER_calibrate ( )
 	UART_recv(&params->pc, sizeof(params->pc), '\0', USCI_BLOCKING);
 
 	FCTL1 = FWKEY;
+
+	__delay_cycles(2*16000000);
+	__delay_cycles(2*16000000);
+	__delay_cycles(2*16000000);
 }
 
 

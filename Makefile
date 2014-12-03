@@ -22,7 +22,10 @@ all: $(OBJS) $(DRIVERS)
 	$(CC) $(CFLAGS) $(LDFLAGS) $? -o $(BINARY)
 
 prog: all
-	mspdebug rf2500 "prog $(BINARY)" "run"
+	mspdebug rf2500 "prog $(BINARY)" "erase segment 0x1040"
+
+read:
+	mspdebug rf2500 "md 0x1040"
 
 clean:
 	rm -vf *.o drivers/*.o $(BINARY)
