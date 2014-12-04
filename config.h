@@ -8,7 +8,7 @@
 #ifndef __OUTLETS_CONFIG_H
 #define __OUTLETS_CONFIG_H
 
-#define OUTLET_ID 0x12
+#define OUTLET_ID 0x22
 
 // Data buffer sizes (in bytes)
 #define SPI_BUF_SIZE 16
