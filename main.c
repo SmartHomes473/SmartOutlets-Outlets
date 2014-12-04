@@ -97,15 +97,11 @@ void OUTLET_run ( )
 			// reset packet
 			if (head == tail) {
 
-				// verify packet identifier
-				if (packet[0] == (uint8_t)0xDC && packet[1] == (uint8_t)0xDC){
+				// verify packet identifier and destination
+				if ((packet[0] == (uint8_t)0xDC) && (packet[1] == (uint8_t)0xDC) && (packet[2] != OUTLET_ID)){
 
 					// TODO: packet verification, like checksum verification
 
-					// reject packets not targeted at us
-					if (packet[2] != OUTLET_ID) {
-						break;
-					}
 
 					// decode opcode
 					switch (packet[5]) {
