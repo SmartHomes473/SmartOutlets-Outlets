@@ -32,17 +32,22 @@ static const uint8_t METER_read_status[] = {0x80, 0x17};
 static const uint8_t METER_clear_drdy[] = {0x80, 0x57, 0x00, 0x00, 0x80};
 static const uint8_t METER_clear_crdy[] = {0x80, 0x57, 0x00, 0x00, 0x40};
 static const uint8_t METER_set_baud[] = {0x80, 0x47, 0x00, 0x40, 0x02};
-static const uint8_t METER_write_config0[] = {0x80, 0x40, 0x20, 0x20, 0xC0};
+static const uint8_t METER_write_config0[] = {0x80, 0x40, 0x00, 0x20, 0xC0};
 static const uint8_t METER_write_config1[] = {0x80, 0x41, 0xEF, 0xEE, 0x00};
 static const uint8_t METER_write_config2[] = {0x90, 0x40, 0x1A, 0x06, 0x50};
 static const uint8_t METER_write_interrupt_mask[] = {0x80, 0x43, 0x00, 0x00, 0x80};
 static const uint8_t METER_begin_conv[] = {0xD5};
-static const uint8_t METER_read_power[] = {0x90, 0x06};
+// apparent power
+static const uint8_t METER_read_power[] = {0x90, 0x14};
+// current
+//static const uint8_t METER_read_power[] = {0x90, 0x06};
+
 static const uint8_t METER_integrator_gain[] = {0x92, 0x6B, 0x00, 0x00, 0x0C};
 
 //FIRST CALIBRATION
 //static const uint8_t METER_write_i_gain[] = {0x90, 0x61, 0x00, 0x00, 0x40};
 //static const uint8_t METER_write_v_gain[] = {0x90, 0x63, 0xD5, 0x94, 0x78};
+//static const uint8_t METER_write_i_gain[] = {0x90, 0x61, 0x00, 0x00, 0xF8};
 
 // SECOND CALIBRATION
 //static const uint8_t METER_write_i_gain[] = {0x90, 0x61, 0x00, 0x00, 0x4B};
@@ -50,10 +55,9 @@ static const uint8_t METER_integrator_gain[] = {0x92, 0x6B, 0x00, 0x00, 0x0C};
 
 
 // THIRD CALIBRATION
-//static const uint8_t METER_write_i_gain[] = {0x90, 0x61, 0x33, 0x90, 0x7F};
-static const uint8_t METER_write_i_gain[] = {0x90, 0x61, 0x33, 0x90, 0xC0};
-static const uint8_t METER_write_v_gain[] = {0x90, 0x63, 0x39, 0x90, 0x6A};
-static const uint8_t METER_write_ac_offset[] = {0x90, 0x65, 0x84, 0xA8, 0x20};
+static const uint8_t METER_write_i_gain[] = {0x90, 0x61, 0x00, 0x00, 0xF0};
+static const uint8_t METER_write_v_gain[] = {0x90, 0x63, 0x98, 0x6F, 0x6C};
+static const uint8_t METER_write_ac_offset[] = {0x90, 0x65, 0x41, 0xDC, 0xF7};
 
 
 /**
@@ -111,7 +115,7 @@ void METER_init ( )
 	// Set gain
 	UART_send(METER_write_i_gain, sizeof(METER_write_i_gain));
 	UART_send(METER_write_v_gain, sizeof(METER_write_v_gain));
-	UART_send(METER_write_ac_offset, sizeof(METER_write_ac_offset));
+	//UART_send(METER_write_ac_offset, sizeof(METER_write_ac_offset));
 
 	// Set Rogowski coil integrator to 60Hz
 	UART_send(METER_integrator_gain, sizeof(METER_integrator_gain));
