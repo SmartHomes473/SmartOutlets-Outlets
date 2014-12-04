@@ -103,7 +103,7 @@ void OUTLET_run ( )
 					// TODO: packet verification, like checksum verification
 
 					// reject packets not targeted at us
-					if (packet[3] != OUTLET_ID) {
+					if (packet[2] != OUTLET_ID) {
 						break;
 					}
 
